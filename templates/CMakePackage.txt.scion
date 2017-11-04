@@ -6,9 +6,9 @@
 set( CPACK_PACKAGE_NAME "${PROJECT_NAME}")
 set( CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
 set( CPACK_PACKAGE_CONTACT "{{PUBLISHER_EMAIL}}")
-set( CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.md")
-set( CPACK_PACKAGE_DESCRIPTION_SUMMARY "🤖 Build a single project with your choice from a variety of build systems ")
-set( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
+set( CPACK_PACKAGE_DESCRIPTION_FILE "${CDISPENSE_SOURCE_DIR}/README.md")
+set( CPACK_PACKAGE_DESCRIPTION_SUMMARY "🚰 Copy build products (headers, libraries, frameworks), reorganizing them on the fly")
+set( CPACK_RESOURCE_FILE_LICENSE "${CDISPENSE_SOURCE_DIR}/LICENSE")
 set( CPACK_STRIP_FILES false)
 
 # stuff needed for Debian

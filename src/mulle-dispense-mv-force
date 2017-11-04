@@ -40,7 +40,7 @@ main()
 
    if [ $# -lt 2 ]
    then
-      fail "usage: mulle-make-mv-force <source> <destination>"
+      fail "usage: mulle-dispense-mv-force <source> <destination>"
    fi
 
    while [ $# -gt 2 ]

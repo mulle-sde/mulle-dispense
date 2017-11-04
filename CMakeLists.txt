@@ -1,7 +1,7 @@
-cmake_minimum_required (VERSION 3.0)
+cdispense_minimum_required (VERSION 3.0)
 
 # use C, because otherwise a CXX compiler is required
-project( mulle-make C)
+project( mulle-dispense C)
 
 #
 # Primarily used for packaging on Linux
@@ -16,58 +16,36 @@ project( mulle-make C)
 # ```
 #
 
-execute_process( COMMAND ./mulle-make version
+execute_process( COMMAND ./mulle-dispense version
                  WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-                 OUTPUT_VARIABLE MULLE_MAKE_VERSION
+                 OUTPUT_VARIABLE MULLE_DISPENSE_VERSION
                  OUTPUT_STRIP_TRAILING_WHITESPACE)
-message( STATUS "MULLE_MAKE_VERSION is ${MULLE_MAKE_VERSION} according to mulle-make")
+message( STATUS "MULLE_DISPENSE_VERSION is ${MULLE_DISPENSE_VERSION} according to mulle-dispense")
 
 
-set( PROJECT_VERSION "${MULLE_MAKE_VERSION}")
+set( PROJECT_VERSION "${MULLE_DISPENSE_VERSION}")
 
 
 set( SCRIPTS
-mulle-make
+mulle-dispense
 )
 
 
 if(MINGW)
    set( SCRIPTS
 ${SCRIPTS}
-mulle-mingw-cmake
-mulle-mingw-make
-mulle-mingw-cpp
-mulle-mingw-dumpdef.sh
-)
-
-#
-# Todo need to preprocess this to replace paths
-#
-   set( BATS
-mulle-mingw-dumpdef.bat
+mulle-mingw-dispense
 )
 
 endif()
 
 
 set( LIBRARY_SCRIPTS
-src/mulle-make-build.sh
-src/mulle-make-command.sh
-src/mulle-make-dispense.sh
-src/mulle-make-compiler.sh
-src/mulle-make-log.sh
-src/mulle-make-mingw.sh
-src/mulle-make-mv-force
-src/mulle-make-systeminstall.sh
+src/mulle-dispense-copy.sh
+src/mulle-dispense-mingw.sh
+src/mulle-dispense-mv-force
 )
 
-
-set( BUILD_PLUGIN_SCRIPTS
-src/plugins/cmake.sh
-src/plugins/configure.sh
-src/plugins/script.sh
-src/plugins/xcodebuild.sh
-)
 
 
 INSTALL( FILES ${SCRIPTS}
@@ -77,27 +55,16 @@ PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
 DESTINATION "bin")
 
 
-INSTALL( FILES ${BATS}
-PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
-            GROUP_EXECUTE GROUP_READ
-            WORLD_EXECUTE WORLD_READ
-DESTINATION "bin")
-
 #
-# future: install into libexec/mulle-make/${MULLE_MAKE_VERSION}
+# future: install into libexec/mulle-dispense/${MULLE_DISPENSE_VERSION}
 #         allows multiple versions to co-exist (does it really ?)
 #
 INSTALL( FILES ${LIBRARY_SCRIPTS}
 PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
             GROUP_EXECUTE GROUP_READ
             WORLD_EXECUTE WORLD_READ
-DESTINATION "libexec/mulle-make")
+DESTINATION "libexec/mulle-dispense")
 
-INSTALL( FILES ${BUILD_PLUGIN_SCRIPTS}
-PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
-            GROUP_EXECUTE GROUP_READ
-            WORLD_EXECUTE WORLD_READ
-DESTINATION "libexec/mulle-make/plugins")
 
 
 ######

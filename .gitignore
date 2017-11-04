@@ -13,7 +13,7 @@ build/
 .make.repos/
 dependencies/
 addictions/
-mulle-make.sublime-workspace
+mulle-dispense.sublime-workspace
 relpath-python.sh
 relpath.sh
 mulle-projec/publisher-info.sh

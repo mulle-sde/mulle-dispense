@@ -1,6 +1,6 @@
-#! /bin/sh
+#! /usr/bin/env bash
 #
-#   Copyright (c) 2016 Nat! - Mulle kybernetiK
+#   Copyright (c) 2015-2017 Nat! - Mulle kybernetiK
 #   All rights reserved.
 #
 #   Redistribution and use in source and binary forms, with or without
@@ -8,7 +8,6 @@
 #
 #   Redistributions of source code must retain the above copyright notice, this
 #   list of conditions and the following disclaimer.
-#
 #   Redistributions in binary form must reproduce the above copyright notice,
 #   this list of conditions and the following disclaimer in the documentation
 #   and/or other materials provided with the distribution.
@@ -29,12 +28,36 @@
 #   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 #   POSSIBILITY OF SUCH DAMAGE.
 #
+MULLE_DISPENSE_OSSPECIFIC_SH="included"
 
-LIBEXEC_PATH="`mulle-bootstrap library-path`"
 
-PATH="${LIBEXEC_PATH}:$PATH"
-export PATH
+FRAMEWORK_DIR_NAME="${OPTION_FRAMEWORK_DIR_NAME:-Frameworks}"
+HEADER_DIR_NAME="${OPTION_HEADER_DIR_NAME:-include}"
+LIBRARY_DIR_NAME="${OPTION_LIBRARY_DIR_NAME:-lib}"
+LIBEXEC_DIR_NAME="${OPTION_LIBRARY_DIR_NAME:-libexec}"
+RESOURCE_DIR_NAME="${OPTION_RESOURCE_DIR_NAME:-share}"
+BIN_DIR_NAME="${OPTION_BIN_DIR_NAME:-bin}"
+SBIN_DIR_NAME="${OPTION_BIN_DIR_NAME:-sbin}"
+# overrides from front to back
+PREFIX_PATH="/usr/local:/usr:/"
+EXE_SUFFIXES=""
 
-[ -z "${MULLE_BOOTSTRAP_MINGW_SH}" ] && . "mulle-bootstrap-mingw.sh" 
+HEADER_SUFFIXES=".h .hpp .inc"
+LIBRARY_SUFFIXES=".a .so"
+LIBRARY_PREFIX="lib"
 
-PATH="`mingw_buildpath "${PATH}"`" cmake.exe "$@"
+case "${UNAME}" in
+   darwin)
+      LIBRARY_SUFFIXES=".a .dylib"
+   ;;
+
+   mingw)
+      LIBRARY_SUFFIXES=".lib .dll"
+      LIBRARY_PREFIX=""
+      SBIN_DIR_NAME=""
+      EXE_SUFFIXES=".bat .exe"
+   ;;
+esac
+
+:
+

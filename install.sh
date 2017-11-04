@@ -3,7 +3,7 @@
 # (c) 2015, coded by Nat!, Mulle KybernetiK
 #
 
-if [ "${MULLE_MAKE_NO_COLOR}" != "YES" ]
+if [ "${MULLE_DISPENSE_NO_COLOR}" != "YES" ]
 then
    # Escape sequence and resets
    C_RESET="\033[0m"
@@ -156,7 +156,7 @@ main()
    local libexec
 
    bin="${prefix}/bin"
-   libexec="${prefix}/libexec/mulle-make"
+   libexec="${prefix}/libexec/mulle-dispense"
 
    if [ ! -d "${bin}" ]
    then
@@ -169,11 +169,8 @@ main()
    fi
 
 
-   install -m "${mode}" "mulle-make" "${bin}/mulle-make" || exit 1
-   printf "install: ${C_MAGENTA}${C_BOLD}%s${C_RESET}\n" "${bin}/mulle-make" >&2
-
-   install -m "${mode}" "mulle-make-dotdump" "${bin}/mulle-make-dotdump" || exit 1
-   printf "install: ${C_MAGENTA}${C_BOLD}%s${C_RESET}\n" "${bin}/mulle-make-dotdump" >&2
+   install -m "${mode}" "mulle-dispense" "${bin}/mulle-dispense" || exit 1
+   printf "install: ${C_MAGENTA}${C_BOLD}%s${C_RESET}\n" "${bin}/mulle-dispense" >&2
 
    case `uname` in
       MINGW*)
@@ -186,14 +183,14 @@ main()
          SH_PATH="`get_sh_windows_path | sed_mangle_escape_slashes`"
          INSTALL_PATH="${bin}" # `get_windows_path "${bin}" | sed_mangle_escape_slashes`"
 
-         for i in mulle-mingw-*bat
-         do
-            cat "${i}" \
-               | sed -e 's|C:\\Program\ Files\\Git\\usr\\bin\\shx\.exe|'"${SH_PATH}|g" \
-               | sed -e 's|mulle-mingw-dumpdef.sh|'"${INSTALL_PATH}/mulle-mingw-dumpdef.sh|g" > "${bin}/$i" || exit 1
-            chmod "${mode}" "${bin}/${i}" || exit 1
-            printf "install: ${C_MAGENTA}${C_BOLD}%s${C_RESET}\n" "$bin/$i" >&2
-         done
+#         for i in mulle-mingw-*bat
+#         do
+#            cat "${i}" \
+#               | sed -e 's|C:\\Program\ Files\\Git\\usr\\bin\\shx\.exe|'"${SH_PATH}|g" \
+#               | sed -e 's|mulle-mingw-dumpdef.sh|'"${INSTALL_PATH}/mulle-mingw-dumpdef.sh|g" > "${bin}/$i" || exit 1
+#            chmod "${mode}" "${bin}/${i}" || exit 1
+#            printf "install: ${C_MAGENTA}${C_BOLD}%s${C_RESET}\n" "$bin/$i" >&2
+#         done
       ;;
    esac
 
@@ -203,8 +200,8 @@ main()
       install -v -m "${mode}" "${i}" "${libexec}" || exit 1
    done
 
-   PLUGIN_DIR="${libexec}/mulle-make-build-plugins"
-   for i in src/mulle-make-build-plugins/*.sh
+   PLUGIN_DIR="${libexec}/mulle-dispense-build-plugins"
+   for i in src/mulle-dispense-build-plugins/*.sh
    do
       mkdir -p "${PLUGIN_DIR}" 2> /dev/null
       install -v -m "${mode}" "${i}" "${PLUGIN_DIR}" || exit 1
@@ -213,7 +210,7 @@ main()
    if [ -d "test" ]
    then
       # use attractive colors :)
-      printf "${C_GREEN}If you are new to mulle-make I would suggest checking out\n" >&2
+      printf "${C_GREEN}If you are new to mulle-dispense I would suggest checking out\n" >&2
       printf "the ${C_YELLOW}README.md${C_GREEN} in ${C_CYAN}./test${C_GREEN} and doing the examples.\n" >&2
    fi
 }

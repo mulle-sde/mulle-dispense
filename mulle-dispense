@@ -45,7 +45,7 @@ MULLE_EXECUTABLE_BASHFUNCTIONS="1"
 
 
 #
-# This is the main user interface to mulle-make
+# This is the main user interface to mulle-dispense
 # sorta like git
 #
 
@@ -56,10 +56,8 @@ trap_fail()
 
 
 SHOWN_COMMANDS="\
-   build         : build project [default]
-   log           : show build log
-   systeminstall : build project and install locallyl
-   version       : print mulle-make version"
+   dispense      : copy files [default]
+   version       : print mulle-dispense version"
 
 
 HIDDEN_COMMANDS="\
@@ -84,7 +82,6 @@ print_flags()
 {
    cat <<EOF
    -f            : force operation
-   --args <file> : read the commandline from <file>. Must be only option.
 EOF
 
    options_technical_flags_usage "         : "
@@ -99,7 +96,9 @@ usage()
 Usage:
    ${MULLE_EXECUTABLE_NAME} [flags] [command] [options]
 
-   Retrieve and unpack tar archive, git repositories, svn repositories.
+   Copy and resdistribute files with
+
+      ${MULLE_EXECUTABLE_NAME} [flags] copy [options] <srcdir> <dstdir>
 
 Flags:
 EOF
@@ -116,7 +115,7 @@ EOF
    if [ "${verbose}" = "NO" ]
    then
       cat <<EOF
-      (use mulle-make -v help to show more commands)
+      (use mulle-dispense -v help to show more commands)
 EOF
    fi
 
@@ -183,9 +182,9 @@ fetch_libexec_path()
    executablepath="`resolve_symlinks "${executablepath}"`"
    exedirpath="`dirname "${executablepath}"`"
    prefix="`dirname "${exedirpath}"`"
-   libexecpath="${prefix}/libexec/mulle-make"
+   libexecpath="${prefix}/libexec/mulle-dispense"
 
-   if [ ! -x "${libexecpath}/mulle-make-build.sh" ]
+   if [ ! -x "${libexecpath}/mulle-dispense-copy.sh" ]
    then
       libexecpath="${exedirpath}/src"
    fi
@@ -199,14 +198,14 @@ fetch_libexec_path()
       ;;
    esac
 
-   if [ -x "${libexecpath}/mulle-make-build.sh" ]
+   if [ -x "${libexecpath}/mulle-dispense-copy.sh" ]
    then
       echo "${libexecpath}"
    fi
 }
 
 
-_main()
+main()
 {
    local MULLE_FLAG_ANSWER="ASK"
    local MULLE_FLAG_MAGNUM_FORCE="NONE"
@@ -229,36 +228,23 @@ _main()
    #
    local argument
 
-   while read -r argument
+   while [ "$#" -ne 0 ]
    do
+      argument="$1"
+
       if options_technical_flags "${argument}"
       then
+         shift
          continue
       fi
 
       case "${argument}" in
-         -a|--prefer-origin)
-            MULLE_FLAG_ANSWER="NO"
-          ;;
-
-         -y|--prefer-local)
-            MULLE_FLAG_ANSWER="YES"
-         ;;
-
          -f|--force)
             MULLE_FLAG_MAGNUM_FORCE="BOTH"
          ;;
 
          -h|--help)
             usage "${MULLE_TRACE}"
-         ;;
-
-         --git-terminal-prompt)
-            [ $# -eq 1 ] && fail "missing argument to \"${argument}\""
-            shift
-
-            GIT_TERMINAL_PROMPT="$1"
-            export GIT_TERMINAL_PROMPT
          ;;
 
          --version)
@@ -282,24 +268,17 @@ _main()
 
    local cmd
 
-   cmd="${argument:-make}"
+   cmd="${argument:-dispense}"
+   [ "$#" -ne 0 ] && shift
 
    MULLE_EXECUTABLE_FAIL_PREFIX="${MULLE_EXECUTABLE_NAME} ${cmd}"
-   MULLE_EXECUTABLE_OPTIONS="$@"
 
    case "${cmd}" in
-      build|make)
-         # shellcheck source=src/mulle-make-build.sh
-         . "${MULLE_MAKE_LIBEXEC_DIR}/mulle-make-build.sh"
+      copy|dispense)
+         # shellcheck source=src/mulle-dispense-build.sh
+         . "${MULLE_DISPENSE_LIBEXEC_DIR}/mulle-dispense-copy.sh"
 
-         make_build_main "$@"
-      ;;
-
-      list|plugins)
-         # shellcheck source=src/mulle-make-systeminstall.sh
-         . "${MULLE_MAKE_LIBEXEC_DIR}/mulle-make-list.sh"
-
-         make_list_main "$@"
+         dispense_copy_main "$@"
       ;;
 
       help)
@@ -307,7 +286,7 @@ _main()
       ;;
 
       library-path)
-         echo "${MULLE_MAKE_LIBEXEC_DIR}"
+         echo "${MULLE_DISPENSE_LIBEXEC_DIR}"
       ;;
 
       uname)
@@ -338,8 +317,8 @@ _init()
       exit 0
    fi
 
-   MULLE_MAKE_LIBEXEC_DIR="`fetch_libexec_path "$0"`"
-   if [ -z "${MULLE_MAKE_LIBEXEC_DIR}" ]
+   MULLE_DISPENSE_LIBEXEC_DIR="`fetch_libexec_path "$0"`"
+   if [ -z "${MULLE_DISPENSE_LIBEXEC_DIR}" ]
    then
       echo "$0 fatal Error: Could not find libexec ($PWD)" >&2
       exit 1
@@ -350,7 +329,7 @@ _init()
    #
    if [ "$1" = "library-path" ]
    then
-      echo "${MULLE_MAKE_LIBEXEC_DIR}"
+      echo "${MULLE_DISPENSE_LIBEXEC_DIR}"
       exit 0
    fi
 
@@ -387,40 +366,6 @@ _init()
    set -o pipefail
 }
 
-
-print_arguments()
-{
-   while [ $# -ne 0 ]
-   do
-      echo "$1"
-      shift
-   done
-}
-
-
-main()
-{
-
-   if [ $# -eq 2 -a "$1" == "--args" ]
-   then
-      local filename
-
-      filename="$2"
-      case "${filename}" in
-         ""|"-")
-            filename=""
-         ;;
-
-         *)
-            [ -f "${filename}" ] || fail "file \"${filename}\" not found"
-         ;;
-      esac
-
-      cat "${filename}" | _main
-   else
-      print_arguments "$@" | _main
-   fi
-}
 
 #
 # leading backslash ? looks like we're getting called from

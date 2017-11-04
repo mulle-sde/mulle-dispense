@@ -29,7 +29,7 @@
 #   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 #   POSSIBILITY OF SUCH DAMAGE.
 #
-MULLE_MAKE_MINGW_SH="included"
+MULLE_DISPENSE_MINGW_SH="included"
 
 
 find_msvc_executable()
@@ -203,7 +203,7 @@ setup_mingw_buildenvironment()
 
 
 #
-# mingw32-make can't have sh.exe in its path, so remove it
+# mingw32-dispense can't have sh.exe in its path, so remove it
 #
 mingw_buildpath()
 {
@@ -285,7 +285,7 @@ mingw_visualstudio_buildpath()
 }
 
 
-mingw32_make_buildpath()
+mingw32_dispense_buildpath()
 {
    mingw_buildpath
 }

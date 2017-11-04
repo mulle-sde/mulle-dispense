@@ -1,21 +1,19 @@
-# mulle-make, cross platform meta-build tool
+# mulle-dispense, cross platform C, ObjC, C++ build products copying tool
 
-![Last version](https://img.shields.io/github/tag/{{PUBLISHER}}/mulle-make.svg)
+![Last version](https://img.shields.io/github/tag/{{PUBLISHER}}/mulle-dispense.svg)
 
 ... for Linux, OS X, FreeBSD, Windows
 
-... for C, C++, Objective-C
 
-Let it run on a source directory. It will determine if the project needs to
-be build via `configure`, `autoconf`, `cmake` or some other build tool.
+After having build something with your favorite build tool like `make`,
+this tool will copy the results to a destination folder.
 
-It will then proceed to build the project. 
-
-Finally `mulle-make` can distribute the build results into a destination directory, reorganizing some things on the fly.
+Headers can be reorganized to fit a canonical "subfolder for every library"
+scheme, if so desired.
 
 
 ## GitHub and Mulle kybernetiK
 
 The development is done on
-[Mulle kybernetiK](https://www.mulle-kybernetik.com/software/git/mulle-make/master).
-Releases and bug-tracking are on [GitHub](https://github.com/{{PUBLISHER}}/mulle-make).
+[Mulle kybernetiK](https://www.mulle-kybernetik.com/software/git/mulle-dispense/master).
+Releases and bug-tracking are on [GitHub](https://github.com/{{PUBLISHER}}/mulle-dispense).
