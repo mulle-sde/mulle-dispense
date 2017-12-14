@@ -35,7 +35,7 @@ dispense_usage()
 {
    cat <<EOF >&2
 Usage:
-   ${MULLE_EXECUTABLE_NAME} copy [options] <srcdir> <dstdir>
+   ${MULLE_EXECUTABLE_NAME} dispense [options] <srcdir> <dstdir>
 
    Copy stuff from srcdir to dstdir.
 
@@ -286,16 +286,6 @@ ${srcdir}/usr/local/libexec"
 
       dispense_libexec "${sources}" "${name}" "${dstdir}"
 
-
-      ##
-      ## copy resources
-      ##
-      sources="${srcdir}/share
-${srcdir}/usr/share
-${srcdir}/usr/local/share"
-
-      dispense_resources "${sources}" "${name}" "${dstdir}"
-
       ##
       ## copy headers
       ##
@@ -309,17 +299,32 @@ ${srcdir}/usr/local/include"
       ##
       ## copy bin and sbin
       ##
-      sources="${srcdir}/bin
+      if [ "${OPTION_EXECUTABLES}" = "YES" ]
+      then
+         sources="${srcdir}/bin
 ${srcdir}/usr/bin
 ${srcdir}/usr/local/bin"
 
-      dispense_binaries "${sources}" "${name}" "f" "${dstdir}" "/${BIN_DIR_NAME}"
+         dispense_binaries "${sources}" "${name}" "f" "${dstdir}" "/${BIN_DIR_NAME}"
+      fi
 
       sources="${srcdir}/sbin
 ${srcdir}/usr/sbin
 ${srcdir}/usr/local/sbin"
 
       dispense_binaries "${sources}" "${name}" "f" "${dstdir}" "/${SBIN_DIR_NAME}"
+
+      ##
+      ## copy resources
+      ##
+      if [ "${OPTION_SHARE}" = "YES" ]
+      then
+         sources="${srcdir}/share
+${srcdir}/usr/share
+${srcdir}/usr/local/share"
+
+         dispense_resources "${sources}" "${name}" "${dstdir}"
+      fi
 
       if [ "${OPTION_FRAMEWORKS}" = "YES" ]
       then
@@ -432,6 +437,8 @@ dispense_copy_main()
 
    local OPTION_NAME
    local OPTION_FRAMEWORKS="NO"
+   local OPTION_SHARE="YES"
+   local OPTION_EXECUTABLES="YES"
 
    case "${UNAME}" in
       darwin)
@@ -446,9 +453,25 @@ dispense_copy_main()
             ${USAGE}
          ;;
 
-         -n|--name)
+         -n|--name|--project-name)
             [ $# -eq 1 ] && fail "missing argument to \"$1\""
             OPTION_NAME="$1"
+         ;;
+
+         --no-executables)
+            OPTION_EXECUTABLES="NO"
+         ;;
+
+         --executables)
+            OPTION_EXECUTABLES="YES"
+         ;;
+
+         --no-share)
+            OPTION_SHARE="NO"
+         ;;
+
+         --share)
+            OPTION_SHARE="YES"
          ;;
 
          --no-frameworks)
@@ -478,6 +501,13 @@ dispense_copy_main()
    local dstdir="$2"
 
    [ ! -d "${srcdir}" ] && fail "\"${srcdir}\" does not exist"
+
+   if [ "${FLAG_LS}" = "YES" ]
+   then
+      ls -lR "${srcdir}" >&2
+      echo >&2
+      echo >&2
+   fi
 
    local name
    local directory

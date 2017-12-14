@@ -96,9 +96,9 @@ usage()
 Usage:
    ${MULLE_EXECUTABLE_NAME} [flags] [command] [options]
 
-   Copy and resdistribute files with
+   Distribute build product files in a uniform fashion with:
 
-      ${MULLE_EXECUTABLE_NAME} [flags] copy [options] <srcdir> <dstdir>
+      ${MULLE_EXECUTABLE_NAME} [flags] dispense [options] <srcdir> <dstdir>
 
 Flags:
 EOF
@@ -223,6 +223,8 @@ main()
    local MULLE_FLAG_LOG_MERGE="NO"
    local MULLE_TRACE_POSTPONE="NO"
 
+   local FLAG_LS="NO"
+
    #
    # simple option handling
    #
@@ -252,6 +254,10 @@ main()
             exit 0
          ;;
 
+         -ls)
+            FLAG_LS="YES"
+         ;;
+
          -*)
             log_error "${MULLE_EXECUTABLE_FAIL_PREFIX}: Unknown option \"${argument}\""
             usage "${MULLE_TRACE}"
@@ -262,6 +268,7 @@ main()
          ;;
       esac
 
+      shift
    done
 
    options_setup_trace "${MULLE_TRACE}"
@@ -269,7 +276,17 @@ main()
    local cmd
 
    cmd="${argument:-dispense}"
-   [ "$#" -ne 0 ] && shift
+
+   # it argument looks like a or an option path, make it a dispense
+   case "${argument}" in
+      *-*|*/*|*.*)
+         argument="dispense"
+      ;;
+
+      *)
+         [ "$#" -ne 0 ] && shift
+      ;;
+   esac
 
    MULLE_EXECUTABLE_FAIL_PREFIX="${MULLE_EXECUTABLE_NAME} ${cmd}"
 
@@ -320,7 +337,7 @@ _init()
    MULLE_DISPENSE_LIBEXEC_DIR="`fetch_libexec_path "$0"`"
    if [ -z "${MULLE_DISPENSE_LIBEXEC_DIR}" ]
    then
-      echo "$0 fatal Error: Could not find libexec ($PWD)" >&2
+      echo "$0 fatal error: Could not find libexec ($PWD)" >&2
       exit 1
    fi
 
