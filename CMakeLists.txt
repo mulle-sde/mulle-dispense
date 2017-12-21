@@ -30,19 +30,10 @@ mulle-dispense
 )
 
 
-if(MINGW)
-   set( SCRIPTS
-${SCRIPTS}
-mulle-mingw-dispense
-)
-
-endif()
-
-
 set( LIBRARY_SCRIPTS
 src/mulle-dispense-copy.sh
-src/mulle-dispense-mingw.sh
 src/mulle-dispense-mv-force
+src/mulle-dispense-osspecific.sh
 )
 
 
