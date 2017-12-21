@@ -3,7 +3,11 @@
 # formula operations.
 #
 PROJECT="mulle-dispense"      # your project/repository name
-DESC="🚰 Copy build products (headers, libraries, frameworks), reorganizing them on the fly"
+DESC=" 🚰 Copy build products and reorganize them "
 LANGUAGE="bash"                # c,cpp, objc, bash ...
 # NAME="${PROJECT}"        # formula filename without .rb extension
 
+DEPENDENCIES='${TOOLS_TAP}mulle-bashfunctions
+'
+
+DEBIAN_DEPENDENCIES="mulle-bashfunctions"

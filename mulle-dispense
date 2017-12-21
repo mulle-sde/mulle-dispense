@@ -55,19 +55,18 @@ trap_fail()
 }
 
 
-SHOWN_COMMANDS="\
-   dispense      : copy files [default]
-   version       : print mulle-dispense version"
-
-
-HIDDEN_COMMANDS="\
-   library-path  : print path to ${MULLE_EXECUTABLE_NAME} libexec
-   uname         : ${MULLE_EXECUTABLE_NAME}'s simplified uname(1)"
-
 
 print_commands()
 {
    local  show_all="${1:-NO}"
+
+   SHOWN_COMMANDS="\
+   dispense      : copy files [default]
+   version       : print ${MULLE_EXECUTABLE_NAME} version"
+
+   HIDDEN_COMMANDS="\
+   libexec-path  : print path to ${MULLE_EXECUTABLE_NAME} libexec
+   uname         : ${MULLE_EXECUTABLE_NAME}'s simplified uname(1)"
 
    echo "${SHOWN_COMMANDS}"
 
@@ -94,11 +93,9 @@ usage()
 
    cat <<EOF
 Usage:
-   ${MULLE_EXECUTABLE_NAME} [flags] [command] [options]
+   ${MULLE_EXECUTABLE_NAME} [flags] [command] [options] <srcdir> <dstdir>
 
-   Distribute build product files in a uniform fashion with:
-
-      ${MULLE_EXECUTABLE_NAME} [flags] dispense [options] <srcdir> <dstdir>
+   Distribute build product files in a uniform fashion.
 
 Flags:
 EOF
@@ -302,7 +299,7 @@ main()
          usage "${MULLE_TRACE}"
       ;;
 
-      library-path)
+      libexec-path|library-path)
          echo "${MULLE_DISPENSE_LIBEXEC_DIR}"
       ;;
 
@@ -344,13 +341,14 @@ _init()
    #
    # minimal setup exit
    #
-   if [ "$1" = "library-path" ]
-   then
-      echo "${MULLE_DISPENSE_LIBEXEC_DIR}"
-      exit 0
-   fi
+   case "$1" in
+      "libexec-path"|"library-path")
+         echo "${MULLE_DISPENSE_LIBEXEC_DIR}"
+         exit 0
+      ;;
+   esac
 
-   MULLE_BASHFUNCTIONS_LIBEXEC_DIR="`mulle-bashfunctions-env library-path 2> /dev/null`"
+   MULLE_BASHFUNCTIONS_LIBEXEC_DIR="`mulle-bashfunctions-env libexec-path 2> /dev/null`"
    if [ -z "${MULLE_BASHFUNCTIONS_LIBEXEC_DIR}" ]
    then
       if [ -z "`command -v "${executablepath}"`" ]
@@ -367,7 +365,7 @@ _init()
    failmsg="failed to load bashfunctions from ${MULLE_BASHFUNCTIONS_LIBEXEC_DIR}"
 
       # shellcheck source=../mulle-bashfunctions/src/mulle-logging.sh
-   . "${MULLE_BASHFUNCTIONS_LIBEXEC_DIR}/mulle-logging.sh"
+   . "${MULLE_BASHFUNCTIONS_LIBEXEC_DIR}/mulle-logging.sh" "$@"
       # shellcheck source=../mulle-bashfunctions/src/mulle-exekutor.sh
    . "${MULLE_BASHFUNCTIONS_LIBEXEC_DIR}/mulle-exekutor.sh" || fail "${failmsg}"
       # shellcheck source=../mulle-bashfunctions/src/mulle-string.sh
