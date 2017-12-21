@@ -1,7 +1,6 @@
-cdispense_minimum_required (VERSION 3.0)
+cmake_minimum_required (VERSION 3.0)
 
-# use C, because otherwise a CXX compiler is required
-project( mulle-dispense C)
+project( mulle-dispense NONE)
 
 #
 # Primarily used for packaging on Linux
