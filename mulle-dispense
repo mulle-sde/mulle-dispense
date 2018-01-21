@@ -36,7 +36,7 @@ fi
 
 MULLE_EXECUTABLE_VERSION_MAJOR=0
 MULLE_EXECUTABLE_VERSION_MINOR=1
-MULLE_EXECUTABLE_VERSION_PATCH=0
+MULLE_EXECUTABLE_VERSION_PATCH=1
 
 MULLE_EXECUTABLE_VERSION="${MULLE_EXECUTABLE_VERSION_MAJOR}.${MULLE_EXECUTABLE_VERSION_MINOR}.${MULLE_EXECUTABLE_VERSION_PATCH}"
 
@@ -65,7 +65,7 @@ print_commands()
    version       : print ${MULLE_EXECUTABLE_NAME} version"
 
    HIDDEN_COMMANDS="\
-   libexec-path  : print path to ${MULLE_EXECUTABLE_NAME} libexec
+   libexec-dir  : print path to ${MULLE_EXECUTABLE_NAME} libexec
    uname         : ${MULLE_EXECUTABLE_NAME}'s simplified uname(1)"
 
    echo "${SHOWN_COMMANDS}"
@@ -299,7 +299,7 @@ main()
          usage "${MULLE_TRACE}"
       ;;
 
-      libexec-path|library-path)
+      libexec-dir|library-path)
          echo "${MULLE_DISPENSE_LIBEXEC_DIR}"
       ;;
 
@@ -342,13 +342,13 @@ _init()
    # minimal setup exit
    #
    case "$1" in
-      "libexec-path"|"library-path")
+      "libexec-dir"|"library-path")
          echo "${MULLE_DISPENSE_LIBEXEC_DIR}"
          exit 0
       ;;
    esac
 
-   MULLE_BASHFUNCTIONS_LIBEXEC_DIR="`mulle-bashfunctions-env libexec-path 2> /dev/null`"
+   MULLE_BASHFUNCTIONS_LIBEXEC_DIR="`mulle-bashfunctions-env libexec-dir 2> /dev/null`"
    if [ -z "${MULLE_BASHFUNCTIONS_LIBEXEC_DIR}" ]
    then
       if [ -z "`command -v "${executablepath}"`" ]
