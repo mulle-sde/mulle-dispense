@@ -211,7 +211,7 @@ main()
          expect_content "${dstdir}/include/header.inc" "// ${srcdir}/usr/local/include"
 
          expect_content "${dstdir}/bin/executable" "// ${srcdir}/usr/local/bin"
-         expect_content "${dstdir}/sbin/sys_executable" "// ${srcdir}/usr/local/bin"
+         expect_content "${dstdir}/sbin/sys_executable" "// ${srcdir}/usr/local/sbin"
 
          expect_content "${dstdir}/lib/liblibrary.a" "// ${srcdir}/usr/local/lib"
          expect_content "${dstdir}/lib/liblibrary.so" "// ${srcdir}/usr/local/lib"

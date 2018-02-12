@@ -1,6 +1,6 @@
-#! /bin/sh
+#! /usr/bin/env bash
 
-[ "${TRACE}" = "YES" ] && set -x
+[ "${TRACE}" = "YES" ] && set -x && : "$0" "$@"
 
 
 TEST_DIR="`dirname "$0"`"
@@ -23,16 +23,16 @@ main()
    OUTPUT_DEVICE=
    for i in "${TEST_DIR}"/*
    do
-      if [ -x "$i/run-test.sh" ]
+      if [ -x "$i/run-test" ]
       then
          log_verbose "------------------------------------------"
          log_info    "$i:"
          log_verbose "------------------------------------------"
          if [ "${MULLE_FLAG_LOG_TERSE}" = "YES" ]
          then
-            ( cd "$i" && ./run-test.sh "$@" > /dev/null 2>&1 ) || fail "Test \"$i\" failed"
+            ( cd "$i" && ./run-test "$@" > /dev/null 2>&1 ) || fail "Test \"$i\" failed"
          else
-            ( cd "$i" && ./run-test.sh "$@" ) || fail "Test \"$i\" failed"
+            ( cd "$i" && ./run-test "$@" ) || fail "Test \"$i\" failed"
          fi
       fi
    done
@@ -41,7 +41,7 @@ main()
 
 init()
 {
-   MULLE_BASHFUNCTIONS_LIBEXEC_DIR="`mulle-bashfunctions-env library-path`" || exit 1
+   MULLE_BASHFUNCTIONS_LIBEXEC_DIR="`mulle-bashfunctions-env libexec-dir`" || exit 1
 
    . "${MULLE_BASHFUNCTIONS_LIBEXEC_DIR}/mulle-bashfunctions.sh" || exit 1
 }
