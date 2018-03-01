@@ -4,5 +4,5 @@
 # enough for you. If you don't have this file, there will be
 # not git operations.
 #
-VERSION="`./mulle-dispense version`"
-# VERSIONNAME=
+VERSIONFILE="mulle-dispense"
+VERSIONNAME="MULLE_EXECUTABLE_VERSION"
