@@ -35,7 +35,7 @@ dispense_usage()
 {
    cat <<EOF >&2
 Usage:
-   ${MULLE_EXECUTABLE_NAME} dispense [options] <srcdir> <dstdir>
+   ${MULLE_USAGE_NAME} dispense [options] <srcdir> <dstdir>
 
    Copy stuff from srcdir to dstdir.
 

@@ -56,11 +56,11 @@ print_commands()
 
    SHOWN_COMMANDS="\
    dispense      : copy files [default]
-   version       : print ${MULLE_EXECUTABLE_NAME} version"
+   version       : print ${MULLE_USAGE_NAME} version"
 
    HIDDEN_COMMANDS="\
-   libexec-dir  : print path to ${MULLE_EXECUTABLE_NAME} libexec
-   uname         : ${MULLE_EXECUTABLE_NAME}'s simplified uname(1)"
+   libexec-dir  : print path to ${MULLE_USAGE_NAME} libexec
+   uname         : ${MULLE_USAGE_NAME}'s simplified uname(1)"
 
    echo "${SHOWN_COMMANDS}"
 
@@ -87,7 +87,7 @@ usage()
 
    cat <<EOF
 Usage:
-   ${MULLE_EXECUTABLE_NAME} [flags] [command] [options] <srcdir> <dstdir>
+   ${MULLE_USAGE_NAME} [flags] [command] [options] <srcdir> <dstdir>
 
    Distribute build product files in a uniform fashion.
 
@@ -112,7 +112,7 @@ EOF
 
    cat <<EOF
 
-Options are command specific. Use ${MULLE_EXECUTABLE_NAME} <command> -h for help.
+Options are command specific. Use ${MULLE_USAGE_NAME} <command> -h for help.
 EOF
 
    exit 1
