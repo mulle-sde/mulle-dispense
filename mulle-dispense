@@ -34,7 +34,7 @@ then
    set -x
 fi
 
-MULLE_EXECUTABLE_VERSION=0.2.2
+MULLE_EXECUTABLE_VERSION=0.2.3
 MULLE_EXECUTABLE_BASHFUNCTIONS="1.3"
 
 
@@ -254,9 +254,9 @@ _init()
       MULLE_BASHFUNCTIONS_LIBEXEC_DIR="`mulle-bashfunctions-env libexec-dir 2> /dev/null`"
       if [ -z "${MULLE_BASHFUNCTIONS_LIBEXEC_DIR}" ]
       then
-         if [ -z "`command -v "${executablepath}"`" ]
+         if [ -z "`command -v "mulle-bashfunctions-env"`" ]
          then
-             echo "Fatal Error: Could not find mulle-bashfunctions-env in PATH (not installed ?)" >&2
+            echo "Fatal Error: Could not find mulle-bashfunctions-env in PATH (not installed ?)" >&2
          else
             echo "Fatal Error: Could not find libexec of mulle-bashfunctions-env ($PWD)" >&2
          fi
