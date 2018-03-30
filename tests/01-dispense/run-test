@@ -180,7 +180,7 @@ main()
    setup_demo_srcdir_1 "${srcdir}"  || exit 1
    run_mulle_dispense copy "${srcdir}" "${dstdir}"
 
-   case "${UNAME}" in
+   case "${MULLE_UNAME}" in
       mingw)
          expect_content "${dstdir}/include/header.h" "// ${srcdir}/usr/local/include"
          expect_content "${dstdir}/include/header.hpp" "// ${srcdir}/usr/local/include"

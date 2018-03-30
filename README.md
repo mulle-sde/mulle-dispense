@@ -1,4 +1,4 @@
-# mulle-dispense, 🚰 Copy build products and reorganize them 
+# mulle-dispense, 🚰 Copy build products and reorganize them
 
 ![Last version](https://img.shields.io/github/tag/{{PUBLISHER}}/mulle-dispense.svg)
 
@@ -30,7 +30,7 @@ Essentially, `mulle-dispense` is a shortcut for:
 
 ```
 cd build
-cp -Ra include share lib bin "${DEPENDENCIES_DIR}"
+cp -Ra include share lib bin "${DEPENDENCY_DIR}"
 ```
 
 But mulle-dispense is a bit more clever than that.

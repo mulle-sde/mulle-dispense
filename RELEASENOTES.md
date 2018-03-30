@@ -1,3 +1,7 @@
+### 0.2.5
+
+* use proper `DEPENDENCY_DIR` and `MULLE_UNAME`
+
 ### 0.2.4
 
 * small cleanup

@@ -440,7 +440,7 @@ dispense_copy_main()
    local OPTION_SHARE="YES"
    local OPTION_EXECUTABLES="YES"
 
-   case "${UNAME}" in
+   case "${MULLE_UNAME}" in
       darwin)
          OPTION_FRAMEWORKS="DEFAULT"
       ;;

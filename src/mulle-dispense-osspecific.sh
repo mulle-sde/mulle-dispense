@@ -46,7 +46,7 @@ HEADER_SUFFIXES=".h .hpp .inc"
 LIBRARY_SUFFIXES=".a .so"
 LIBRARY_PREFIX="lib"
 
-case "${UNAME}" in
+case "${MULLE_UNAME}" in
    darwin)
       LIBRARY_SUFFIXES=".a .dylib"
    ;;
