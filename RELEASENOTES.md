@@ -1,3 +1,7 @@
+### 0.2.6
+
+* miniscule code improvement
+
 ### 0.2.5
 
 * use proper `DEPENDENCY_DIR` and `MULLE_UNAME`
