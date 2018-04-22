@@ -1,3 +1,7 @@
+### 0.2.7
+
+* remove `MULLE_EXECUTABLE_FAIL_PREFIX`
+
 ### 0.2.6
 
 * miniscule code improvement
