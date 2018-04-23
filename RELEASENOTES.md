@@ -1,3 +1,7 @@
+### 0.2.8
+
+* fix potential bug in test
+
 ### 0.2.7
 
 * remove `MULLE_EXECUTABLE_FAIL_PREFIX`

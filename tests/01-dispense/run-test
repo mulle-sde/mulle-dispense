@@ -23,10 +23,10 @@ _setup_demo_build_dir()
    [ -z "${LIBRARY_SUFFIXES}" ] && internal_fail "LIBRARY_DIR_NAME" is empty
    [ -z "${HEADER_SUFFIXES}" ]  && internal_fail "LIBRARY_DIR_NAME" is empty
 
-   IFS=":"
+   IFS=":"; set -f
    for prefix in ${PREFIX_PATH}
    do
-      IFS="${DEFAULT_IFS}"
+      IFS="${DEFAULT_IFS}"; set +f
 
       if [ ! -z "${HEADER_DIR_NAME}" ]
       then
@@ -103,7 +103,7 @@ _setup_demo_build_dir()
       fi
    done
 
-   IFS="${DEFAULT_IFS}"
+   IFS="${DEFAULT_IFS}"; set +f
 }
 
 
