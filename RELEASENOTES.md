@@ -1,3 +1,7 @@
+### 0.2.9
+
+* CMakeLists.txt CMakePackage.txt LICENSE Makefile README.md RELEASENOTES.md build install.chk install.sh mulle-dispense mulle-dispense.sublime-project mulle-dispense.sublime-workspace mulle-project src tests tmp.4G7WECAI tmp.Cm9FA2Yu tmp.H70JmUwp tmp.OMcvmXX1 tmp.RPTGbiBb tmp.T7CWYggR tmp.XRatwWEH tmp.gKzio3Kf tmp.nJXgwker tmp.wXAYgWwu simplified CMakeLists.txt
+
 ### 0.2.8
 
 * fix potential bug in test

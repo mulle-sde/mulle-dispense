@@ -30,12 +30,10 @@ mulle-dispense
 )
 
 
-set( LIBRARY_SCRIPTS
-src/mulle-dispense-copy.sh
-src/mulle-dispense-mv-force
-src/mulle-dispense-osspecific.sh
+file( GLOB LIBRARY_SCRIPTS
+   "src/*.sh"
+   "src/mulle-dispense-mv-force"
 )
-
 
 
 INSTALL( FILES ${SCRIPTS}
