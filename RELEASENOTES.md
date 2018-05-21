@@ -1,3 +1,7 @@
+### 0.2.11
+
+* rename install to installer, because of name conflict
+
 ### 0.2.10
 
 * rename install.sh to install

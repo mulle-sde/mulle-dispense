@@ -1,6 +1,6 @@
 SCRIPTS=install.sh \
 src/mulle-dispense-copy.sh \
-src/mulle-dispense-mingw.sh \
+src/mulle-dispense-os-specific.sh \
 src/mulle-dispense-mv-force
 
 CHECKSTAMPS=$(SCRIPTS:.sh=.chk)
@@ -24,8 +24,8 @@ mulle-dispense.chk:	mulle-dispense
 	- shellcheck $(SHELLFLAGS) $<
 	(shellcheck -f json $(SHELLFLAGS) $< | jq '.[].level' | grep -w error > /dev/null ) && exit 1 || touch $@
 
-install:
-	@ ./install.sh
+installer:
+	@ ./installer
 
 clean:
 	@- rm src/*.chk
