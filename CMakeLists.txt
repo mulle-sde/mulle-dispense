@@ -58,6 +58,6 @@ DESTINATION "libexec/mulle-dispense")
 ######
 #
 # must be after CPACK_PACKAGE_VERSION
-include( CMakePackage.txt)
+include( CMakePackage.cmake)
 include( CPack)
 
