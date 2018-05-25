@@ -1,3 +1,7 @@
+### 0.2.14
+
+* fix package dependencies more
+
 ### 0.2.13
 
 * fix package dependencies
