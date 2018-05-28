@@ -18,10 +18,8 @@ Executable          | Description
 
 ## Install
 
-OS    | Command
-------|------------------------------------
-macos | `brew install mulle-kybernetik/software/mulle-dispense`
-other | ./install.sh  (Requires: [mulle-bashfunctions](https://github.com/mulle-nat/mulle-bashfunctions))
+See [mulle-sde-developer](//github.com/mulle-sde/mulle-sde-developer) how
+to install mulle-sde.
 
 
 ## What mulle-dispense does
