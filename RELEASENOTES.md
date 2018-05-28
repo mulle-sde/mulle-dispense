@@ -1,3 +1,7 @@
+### 0.2.15
+
+* improved brew formula definition
+
 ### 0.2.14
 
 * fix package dependencies more
