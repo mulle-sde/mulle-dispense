@@ -31,7 +31,7 @@
 #
 [ "${TRACE}" = "YES" ] && set -x && : "$0" "$@"
 
-MULLE_EXECUTABLE_VERSION=0.2.17
+MULLE_EXECUTABLE_VERSION=0.2.18
 
 
 #
@@ -83,7 +83,7 @@ Usage:
 Flags:
 EOF
 
-   print_flags | sort
+   print_flags | LC_ALL=C sort
 
    cat <<EOF
 
