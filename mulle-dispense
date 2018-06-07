@@ -31,7 +31,7 @@
 #
 [ "${TRACE}" = "YES" ] && set -x && : "$0" "$@"
 
-MULLE_EXECUTABLE_VERSION=0.2.18
+MULLE_EXECUTABLE_VERSION=0.2.19
 
 
 #
@@ -183,7 +183,7 @@ main()
 
    # it argument looks like a or an option path, make it a dispense
    case "${argument}" in
-      *-*|*/*|*.*)
+      *"-"*|"*/"*|*"."*)
          argument="dispense"
       ;;
 

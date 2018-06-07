@@ -1,3 +1,7 @@
+### 0.2.19
+
+* quote more case patterns to avoid extglob surprises
+
 ### 0.2.18
 
 * use `LC_ALL=C` for sort
