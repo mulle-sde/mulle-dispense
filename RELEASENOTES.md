@@ -1,3 +1,7 @@
+### 0.2.20
+
+* add `._.DS_Store` to .gitignore
+
 ### 0.2.19
 
 * quote more case patterns to avoid extglob surprises
