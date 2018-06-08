@@ -454,7 +454,7 @@ dispense_copy_main()
          ;;
 
          -n|--name|--project-name)
-            [ $# -eq 1 ] && fail "missing argument to \"$1\""
+            [ $# -eq 1 ] && fail "Missing argument to \"$1\""
             OPTION_NAME="$1"
          ;;
 

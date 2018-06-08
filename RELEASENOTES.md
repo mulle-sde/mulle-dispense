@@ -1,3 +1,7 @@
+### 0.2.21
+
+* capitalize an error message properly
+
 ### 0.2.20
 
 * add `._.DS_Store` to .gitignore
