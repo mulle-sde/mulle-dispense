@@ -404,8 +404,8 @@ guess_project_name()
 
    while :
    do
-      parent="`dirname -- "${directory}"`"
-      name="`basename -- "${directory}"`"
+      parent="`fast_dirname "${directory}"`"
+      name="`fast_basename "${directory}"`"
       directory="${parent}"
 
       if [ "${directory}" = "." ]

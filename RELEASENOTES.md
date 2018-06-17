@@ -1,3 +1,7 @@
+### 0.2.22
+
+* small code change
+
 ### 0.2.21
 
 * capitalize an error message properly
