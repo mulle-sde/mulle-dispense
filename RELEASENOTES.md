@@ -1,3 +1,8 @@
+## 0.3.0
+
+* add --header-dir option
+
+
 ### 0.2.22
 
 * small code change

@@ -56,15 +56,13 @@ dispense_files()
    log_entry "dispense_files" "$@"
 
    local src="$1"
-   local name="$2"
-   local ftype="$3"
-   local dstdir="$4"
-   local dirpath="$5"
+   local ftype="$2"
+   local dstdir="$3"
+   local dirpath="$4"
 
    local dst
 
    log_fluff "Consider copying ${ftype} from \"${src}\""
-
 
    if [ -d "${src}" ]
    then
@@ -94,12 +92,11 @@ dispense_headers()
    log_entry "dispense_headers" "$@"
 
    local sources="$1"
-   local name="$2"
-   local dstdir="$3"
+   local dstdir="$2"
 
    local headerpath
 
-   headerpath="${OPTION_DISPENSE_HEADERS_DIR:-/${HEADER_DIR_NAME}}"
+   headerpath="${OPTION_HEADER_DIR:-${HEADER_DIR_NAME}}"
 
    local src
    IFS="
@@ -108,7 +105,7 @@ dispense_headers()
    do
       IFS="${DEFAULT_IFS}"
 
-      dispense_files "${src}" "${name}" "headers" "${dstdir}" "${headerpath}"
+      dispense_files "${src}" "headers" "${dstdir}" "${headerpath}"
    done
    IFS="${DEFAULT_IFS}"
 }
@@ -119,8 +116,7 @@ dispense_resources()
    log_entry "dispense_resources" "$@"
 
    local sources="$1"
-   local name="$2"
-   local dstdir="$3"
+   local dstdir="$2"
 
    local resourcepath
 
@@ -133,7 +129,7 @@ dispense_resources()
    do
       IFS="${DEFAULT_IFS}"
 
-      dispense_files "${src}" "${name}" "resources" "${dstdir}" "${resourcepath}"
+      dispense_files "${src}" "resources" "${dstdir}" "${resourcepath}"
    done
    IFS="${DEFAULT_IFS}"
 }
@@ -144,8 +140,7 @@ dispense_libexec()
    log_entry "dispense_libexec" "$@"
 
    local sources="$1"
-   local name="$2"
-   local dstdir="$3"
+   local dstdir="$2"
 
    local libexecpath
 
@@ -158,7 +153,7 @@ dispense_libexec()
    do
       IFS="${DEFAULT_IFS}"
 
-      dispense_files "${src}" "${name}" "libexec" "${dstdir}" "${libexecpath}"
+      dispense_files "${src}" "libexec" "${dstdir}" "${libexecpath}"
    done
    IFS="${DEFAULT_IFS}"
 }
@@ -169,10 +164,9 @@ _dispense_binaries()
    log_entry "_dispense_binaries" "$@"
 
    local src="$1"
-   local name="$2"
-   local findtype="$3"
-   local dstdir="$4"
-   local subpath="$5"
+   local findtype="$2"
+   local dstdir="$3"
+   local subpath="$4"
 
    local dst
    local findtype2
@@ -184,7 +178,7 @@ _dispense_binaries()
    then
       copyflag="-n"
    fi
-   log_fluff "Consider copying binaries from \"${src}\" for type \"${findtype}/${findtype2}\""
+   log_debug "Consider copying binaries from \"${src}\" for type \"${findtype}/${findtype2}\""
 
    if [ -d "${src}" ]
    then
@@ -202,11 +196,11 @@ _dispense_binaries()
             exekutor xargs -0 -I % "${mv_force}" ${OPTION_COPYMOVEFLAGS} "${copyflag}" % "${dst}/" >&2
          [ $? -eq 0 ]  || exit 1
       else
-         log_fluff "But there are none"
+         log_debug "But there are none"
       fi
       rmdir_safer "${src}"
    else
-      log_fluff "But it doesn't exist"
+      log_debug "But it doesn't exist"
    fi
 }
 
@@ -234,11 +228,9 @@ collect_and_dispense_product()
 {
    log_entry "_collect_and_dispense_product" "$@"
 
-   local name="$1"
-   local srcdir="$2"
-   local dstdir="$3"
+   local srcdir="$1"
+   local dstdir="$2"
 
-   log_verbose "Collecting and dispensing \"${name}\" products"
    if [ "${MULLE_FLAG_LOG_DEBUG}" = "YES"  ]
    then
       log_debug "Contents of srcdir:"
@@ -275,7 +267,7 @@ collect_and_dispense_product()
 ${srcdir}/usr/lib
 ${srcdir}/usr/local/lib"
 
-      dispense_binaries "${sources}" "${name}" "f" "${dstdir}" "/${LIBRARY_DIR_NAME}"
+      dispense_binaries "${sources}" "f" "${dstdir}" "/${LIBRARY_DIR_NAME}"
 
       ##
       ## copy libexec
@@ -284,7 +276,7 @@ ${srcdir}/usr/local/lib"
 ${srcdir}/usr/libexec
 ${srcdir}/usr/local/libexec"
 
-      dispense_libexec "${sources}" "${name}" "${dstdir}"
+      dispense_libexec "${sources}" "${dstdir}"
 
       ##
       ## copy headers
@@ -293,7 +285,7 @@ ${srcdir}/usr/local/libexec"
 ${srcdir}/usr/include
 ${srcdir}/usr/local/include"
 
-      dispense_headers  "${sources}" "${name}" "${dstdir}"
+      dispense_headers  "${sources}" "${dstdir}"
 
 
       ##
@@ -305,14 +297,14 @@ ${srcdir}/usr/local/include"
 ${srcdir}/usr/bin
 ${srcdir}/usr/local/bin"
 
-         dispense_binaries "${sources}" "${name}" "f" "${dstdir}" "/${BIN_DIR_NAME}"
+         dispense_binaries "${sources}" "f" "${dstdir}" "/${BIN_DIR_NAME}"
       fi
 
       sources="${srcdir}/sbin
 ${srcdir}/usr/sbin
 ${srcdir}/usr/local/sbin"
 
-      dispense_binaries "${sources}" "${name}" "f" "${dstdir}" "/${SBIN_DIR_NAME}"
+      dispense_binaries "${sources}" "f" "${dstdir}" "/${SBIN_DIR_NAME}"
 
       ##
       ## copy resources
@@ -323,7 +315,7 @@ ${srcdir}/usr/local/sbin"
 ${srcdir}/usr/share
 ${srcdir}/usr/local/share"
 
-         dispense_resources "${sources}" "${name}" "${dstdir}"
+         dispense_resources "${sources}" "${dstdir}"
       fi
 
       if [ "${OPTION_FRAMEWORKS}" = "YES" ]
@@ -335,7 +327,7 @@ ${srcdir}/usr/local/share"
 ${srcdir}/Frameworks
 ${srcdir}/Library/Frameworks"
 
-         dispense_binaries "${sources}" "${name}" "d" "${dstdir}" "/${FRAMEWORK_DIR_NAME}"
+         dispense_binaries "${sources}" "d" "${dstdir}" "/${FRAMEWORK_DIR_NAME}"
       fi
    fi
 
@@ -379,11 +371,11 @@ ${srcdir}/Library/Frameworks"
          [ $? -eq 0 ]  || fail "moving files from ${srcdir} to ${dst} failed"
       fi
 
-      if [ "$MULLE_FLAG_LOG_VERBOSE" = "YES"  ]
+      if [ "$MULLE_FLAG_LOG_FLUFF" = "YES"  ]
       then
          if dir_has_files "${srcdir}"
          then
-            log_fluff "Directory \"${dst}\" contained files after collect and dispense"
+            log_fluff "Directory \"${dst}\" contains orphaned files after collect and dispense"
             log_fluff "--------------------"
             ( cd "${srcdir}" ; ls -lR >&2 )
             log_fluff "--------------------"
@@ -393,14 +385,16 @@ ${srcdir}/Library/Frameworks"
 
    rmdir_safer "${srcdir}"
 
-   log_fluff "Done collecting and dispensing product"
-   log_fluff
+   log_debug "Done collecting and dispensing product"
 }
 
 
 guess_project_name()
 {
    local directory="$1"
+
+   local parent
+   local name
 
    while :
    do
@@ -419,8 +413,8 @@ guess_project_name()
          ;;
 
          *)
-         echo "${name}"
-         return
+            echo "${name}"
+            return
          ;;
       esac
    done
@@ -455,6 +449,8 @@ dispense_copy_main()
 
          -n|--name|--project-name)
             [ $# -eq 1 ] && fail "Missing argument to \"$1\""
+            shift
+
             OPTION_NAME="$1"
          ;;
 
@@ -480,6 +476,13 @@ dispense_copy_main()
 
          --frameworks)
             OPTION_FRAMEWORKS="YES"
+         ;;
+
+         --header-dir)
+            [ $# -eq 1 ] && fail "Missing argument to \"$1\""
+            shift
+
+            OPTION_HEADER_DIR="$1"
          ;;
 
          -*)
@@ -509,15 +512,6 @@ dispense_copy_main()
       echo >&2
    fi
 
-   local name
-   local directory
-
-   name="${OPTION_NAME}"
-   if [ -z "${name}" ]
-   then
-      name="`guess_project_name "${srcdir}"`"
-   fi
-
    if [ -z "${MULLE_DISPENSE_OSSPECIFIC_SH}" ]
    then
       . "${MULLE_DISPENSE_LIBEXEC_DIR}/mulle-dispense-osspecific.sh" || return 1
@@ -535,6 +529,16 @@ dispense_copy_main()
       . "${MULLE_BASHFUNCTIONS_LIBEXEC_DIR}/mulle-file.sh" || return 1
    fi
 
-   collect_and_dispense_product "${name}" "${srcdir}" "${dstdir}"
+   local name
+
+   name="${OPTION_NAME}"
+   if [ -z "${name}" ]
+   then
+      name="`guess_project_name "${srcdir}"`"
+   fi
+
+   log_verbose "Collecting and dispensing \"${name}\" products"
+
+   collect_and_dispense_product "${srcdir}" "${dstdir}"
 }
 

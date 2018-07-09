@@ -38,8 +38,8 @@ LIBEXEC_DIR_NAME="${OPTION_LIBRARY_DIR_NAME:-libexec}"
 RESOURCE_DIR_NAME="${OPTION_RESOURCE_DIR_NAME:-share}"
 BIN_DIR_NAME="${OPTION_BIN_DIR_NAME:-bin}"
 SBIN_DIR_NAME="${OPTION_BIN_DIR_NAME:-sbin}"
+
 # overrides from front to back
-PREFIX_PATH="/usr/local:/usr:/"
 EXE_SUFFIXES=""
 
 HEADER_SUFFIXES=".h .hpp .inc"
