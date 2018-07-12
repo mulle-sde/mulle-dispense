@@ -1,3 +1,7 @@
+### 0.3.1
+
+* less verbose
+
 ## 0.3.0
 
 * add --header-dir option

@@ -62,7 +62,7 @@ dispense_files()
 
    local dst
 
-   log_fluff "Consider copying ${ftype} from \"${src}\""
+   log_debug "Consider copying ${ftype} from \"${src}\""
 
    if [ -d "${src}" ]
    then
@@ -79,10 +79,10 @@ dispense_files()
 
          rmdir_safer "${src}"
       else
-         log_fluff "But there are none"
+         log_debug "But there are none"
       fi
    else
-      log_fluff "But it doesn't exist"
+      log_debug "But it doesn't exist"
    fi
 }
 
