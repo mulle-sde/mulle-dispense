@@ -235,7 +235,7 @@ collect_and_dispense_product()
    then
       log_debug "Contents of srcdir:"
 
-      ls -lRa ${srcdir} >&2
+      ls -lRa "${srcdir}" >&2
    fi
 
    #

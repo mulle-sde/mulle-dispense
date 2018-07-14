@@ -1,3 +1,7 @@
+### 0.3.2
+
+* add missing quotes around string
+
 ### 0.3.1
 
 * less verbose
