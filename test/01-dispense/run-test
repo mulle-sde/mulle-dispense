@@ -17,11 +17,16 @@ _setup_demo_build_dir()
 {
    local directory="$1"
 
-   [ -z "${PREFIX_PATH}" ]     && internal_fail "PREFIX_PATH" is empty
-   [ -z "${HEADER_DIR_NAME}" ] && internal_fail "HEADER_DIR_NAME" is empty
-   [ -z "${LIBRARY_DIR_NAME}" ] && internal_fail "LIBRARY_DIR_NAME" is empty
-   [ -z "${LIBRARY_SUFFIXES}" ] && internal_fail "LIBRARY_DIR_NAME" is empty
-   [ -z "${HEADER_SUFFIXES}" ]  && internal_fail "LIBRARY_DIR_NAME" is empty
+   local PREFIX_PATH
+   case "${MULLE_UNAME}" in
+      mingw*)
+         PREFIX_PATH="/usr:/usr/local"
+      ;;
+      *)
+         PREFIX_PATH="/usr:/usr/local"
+      ;;
+   esac
+
 
    IFS=":"; set -f
    for prefix in ${PREFIX_PATH}
@@ -236,6 +241,14 @@ init()
    MULLE_DISPENSE_LIBEXEC_DIR="`${MULLE_DISPENSE} library-path`" || exit 1
 
    . "${MULLE_DISPENSE_LIBEXEC_DIR}/mulle-dispense-osspecific.sh" || exit 1
+
+
+   # defined in mulle-dispense-osspecific.sh
+
+   [ -z "${HEADER_DIR_NAME}" ]  && internal_fail "HEADER_DIR_NAME" is empty
+   [ -z "${LIBRARY_DIR_NAME}" ] && internal_fail "LIBRARY_DIR_NAME" is empty
+   [ -z "${LIBRARY_SUFFIXES}" ] && internal_fail "LIBRARY_SUFFIXES" is empty
+   [ -z "${HEADER_SUFFIXES}" ]  && internal_fail "HEADER_SUFFIXES" is empty
 }
 
 
