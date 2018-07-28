@@ -1,3 +1,8 @@
+## 0.4.0
+
+* fix test for mingw
+
+
 ### 0.3.2
 
 * add missing quotes around string
