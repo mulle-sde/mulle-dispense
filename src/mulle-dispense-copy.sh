@@ -389,7 +389,7 @@ ${srcdir}/Library/Frameworks"
 }
 
 
-guess_project_name()
+r_guess_project_name()
 {
    local directory="$1"
 
@@ -398,13 +398,16 @@ guess_project_name()
 
    while :
    do
-      parent="`fast_dirname "${directory}"`"
-      name="`fast_basename "${directory}"`"
+      r_fast_dirname "${directory}"
+      parent="${RVAL}"
+      r_fast_basename "${directory}"
+      name="${RVAL}"
+
       directory="${parent}"
 
       if [ "${directory}" = "." ]
       then
-         echo "${name}"
+         RVAL="${name}"
          return
       fi
 
@@ -413,7 +416,7 @@ guess_project_name()
          ;;
 
          *)
-            echo "${name}"
+            RVAL="${name}"
             return
          ;;
       esac
@@ -530,11 +533,13 @@ dispense_copy_main()
    fi
 
    local name
+   local RVAL
 
    name="${OPTION_NAME}"
    if [ -z "${name}" ]
    then
-      name="`guess_project_name "${srcdir}"`"
+      r_guess_project_name "${srcdir}"
+      name="${RVAL}"
    fi
 
    log_verbose "Collecting and dispensing \"${name}\" products"
