@@ -46,6 +46,17 @@ EOF
 }
 
 
+_rmdir_safer()
+{
+   [ -z "$1" ] && internal_fail "empty path"
+
+   if [ -d "$1" ]
+   then
+      exekutor chmod -R ugo+wX "$1" >&2 || fail "Failed to make $1 writable"
+      exekutor rm -rf "$1"  >&2 || fail "failed to remove $1"
+   fi
+}
+
 #
 # move stuff produced my cmake and configure to places
 # where we expect them. Expect  others to build to
@@ -77,7 +88,7 @@ dispense_files()
          log_fluff "Copying ${ftype} from \"${src}\" to \"${dst}\""
          exekutor cp -Ra ${OPTION_COPYMOVEFLAGS} "${src}"/* "${dst}" >&2 || exit 1
 
-         rmdir_safer "${src}"
+         _rmdir_safer "${src}"
       else
          log_debug "But there are none"
       fi
@@ -198,7 +209,7 @@ _dispense_binaries()
       else
          log_debug "But there are none"
       fi
-      rmdir_safer "${src}"
+      _rmdir_safer "${src}"
    else
       log_debug "But it doesn't exist"
    fi
@@ -340,13 +351,13 @@ ${srcdir}/Library/Frameworks"
    src="${srcdir}/usr/local"
    if ! dir_has_files "${src}"
    then
-      rmdir_safer "${src}"
+      _rmdir_safer "${src}"
    fi
 
    src="${srcdir}/usr"
    if ! dir_has_files "${src}"
    then
-      rmdir_safer "${src}"
+      _rmdir_safer "${src}"
    fi
 
    #
@@ -383,7 +394,7 @@ ${srcdir}/Library/Frameworks"
       fi
    fi
 
-   rmdir_safer "${srcdir}"
+   _rmdir_safer "${srcdir}"
 
    log_debug "Done collecting and dispensing product"
 }

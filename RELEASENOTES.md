@@ -1,3 +1,7 @@
+### 0.5.1
+
+* mulle-dispense does not wrongly assert the pathname 'sanity' of the source anymore
+
 ## 0.5.0
 
 * use `r_` functions of mulle-bashfunctions 1.8.0
