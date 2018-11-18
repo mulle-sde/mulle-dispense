@@ -1,3 +1,8 @@
+## 0.6.0
+
+* tune what gets dispensed with commandline parameters like --no-headers
+
+
 ### 0.5.1
 
 * mulle-dispense does not wrongly assert the pathname 'sanity' of the source anymore

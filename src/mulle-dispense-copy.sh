@@ -46,6 +46,9 @@ EOF
 }
 
 
+#
+# don't use bashfunctions rmdir_safer
+#
 _rmdir_safer()
 {
    [ -z "$1" ] && internal_fail "empty path"
@@ -73,8 +76,6 @@ dispense_files()
 
    local dst
 
-   log_debug "Consider copying ${ftype} from \"${src}\""
-
    if [ -d "${src}" ]
    then
       if dir_has_files "${src}"
@@ -90,10 +91,10 @@ dispense_files()
 
          _rmdir_safer "${src}"
       else
-         log_debug "But there are none"
+         log_debug "Nothing to copy from \"${src}\", as there are no ${ftype} files"
       fi
    else
-      log_debug "But it doesn't exist"
+      log_debug "Nothing to copy from \"${src}\" as it doesn't exist"
    fi
 }
 
@@ -203,8 +204,18 @@ _dispense_binaries()
 
          log_fluff "Moving binaries from \"${src}\" to \"${dst}\""
          mkdir_if_missing "${dst}"
-         exekutor find "${src}" -xdev -mindepth 1 -maxdepth 1 \( -type "${findtype}" -o -type "${findtype2}" \) -print0 | \
-            exekutor xargs -0 -I % "${mv_force}" ${OPTION_COPYMOVEFLAGS} "${copyflag}" % "${dst}/" >&2
+         exekutor find "${src}" -xdev \
+                                -mindepth 1 \
+                                -maxdepth 1 \
+                                \( -type "${findtype}" -o -type "${findtype2}" \) \
+                                -print0 | \
+            exekutor xargs -0 \
+                           -I % \
+                           "${mv_force}" \
+                           ${OPTION_COPYMOVEFLAGS} \
+                           "${copyflag}" \
+                           % \
+                           "${dst}/" >&2
          [ $? -eq 0 ]  || exit 1
       else
          log_debug "But there are none"
@@ -242,25 +253,34 @@ collect_and_dispense_product()
    local srcdir="$1"
    local dstdir="$2"
 
-   if [ "${MULLE_FLAG_LOG_DEBUG}" = "YES"  ]
+   if [ "${MULLE_FLAG_LOG_SETTINGS}" = 'YES'  ]
    then
-      log_debug "Contents of srcdir:"
+      log_trace2 "Contents of srcdir:"
 
       ls -lRa "${srcdir}" >&2
    fi
 
+
+   log_fluff "Create default lib/, include/, Frameworks/ in ${dstdir}"
    #
    # ensure basic structure is there to squelch linker warnings
    #
-   log_fluff "Create default lib/, include/, Frameworks/ in ${dstdir}"
 
-   if [ "${OPTION_FRAMEWORKS}" = "YES" ]
+   if [ "${OPTION_HEADERS}" = 'YES' ]
+   then
+      mkdir_if_missing "${dstdir}/${HEADER_DIR_NAME}"
+   fi
+
+   if [ "${OPTION_FRAMEWORKS}" = 'YES' ]
    then
       mkdir_if_missing "${dstdir}/${FRAMEWORK_DIR_NAME}"
    fi
 
-   mkdir_if_missing "${dstdir}/${LIBRARY_DIR_NAME}"
-   mkdir_if_missing "${dstdir}/${HEADER_DIR_NAME}"
+   if [ "${OPTION_LIBRARIES}" = 'YES' ]
+   then
+      mkdir_if_missing "${dstdir}/${LIBRARY_DIR_NAME}"
+   fi
+
 
    #
    # probably should use install_name_tool to hack all dylib paths that contain .ref
@@ -269,59 +289,66 @@ collect_and_dispense_product()
    if true
    then
       local sources
-      ##
-      ## copy lib
-      ## TODO: isn't cmake's output directory also platform specific ?
-      ##
-      # order is important, last one wins!
-      sources="${srcdir}/lib
+
+      if [ "${OPTION_LIBRARIES}" = 'YES' ]
+      then
+         ##
+         ## copy lib
+         ## TODO: isn't cmake's output directory also platform specific ?
+         ##
+         # order is important, last one wins!
+         sources="${srcdir}/lib
 ${srcdir}/usr/lib
 ${srcdir}/usr/local/lib"
 
-      dispense_binaries "${sources}" "f" "${dstdir}" "/${LIBRARY_DIR_NAME}"
+         dispense_binaries "${sources}" "f" "${dstdir}" "/${LIBRARY_DIR_NAME}"
 
-      ##
-      ## copy libexec
-      ##
-      sources="${srcdir}/libexec
+         ##
+         ## copy libexec
+         ##
+         sources="${srcdir}/libexec
 ${srcdir}/usr/libexec
 ${srcdir}/usr/local/libexec"
 
-      dispense_libexec "${sources}" "${dstdir}"
+         dispense_libexec "${sources}" "${dstdir}"
+      fi
 
-      ##
-      ## copy headers
-      ##
-      sources="${srcdir}/include
+      if [ "${OPTION_HEADERS}" = 'YES' ]
+      then
+         ##
+         ## copy headers
+         ##
+         sources="${srcdir}/include
 ${srcdir}/usr/include
 ${srcdir}/usr/local/include"
 
-      dispense_headers  "${sources}" "${dstdir}"
+         dispense_headers  "${sources}" "${dstdir}"
+      fi
 
 
-      ##
-      ## copy bin and sbin
-      ##
-      if [ "${OPTION_EXECUTABLES}" = "YES" ]
+      if [ "${OPTION_EXECUTABLES}" = 'YES' ]
       then
+         ##
+         ## copy bin and sbin
+         ##
          sources="${srcdir}/bin
 ${srcdir}/usr/bin
 ${srcdir}/usr/local/bin"
 
          dispense_binaries "${sources}" "f" "${dstdir}" "/${BIN_DIR_NAME}"
-      fi
 
-      sources="${srcdir}/sbin
+         sources="${srcdir}/sbin
 ${srcdir}/usr/sbin
 ${srcdir}/usr/local/sbin"
 
-      dispense_binaries "${sources}" "f" "${dstdir}" "/${SBIN_DIR_NAME}"
+         dispense_binaries "${sources}" "f" "${dstdir}" "/${SBIN_DIR_NAME}"
+      fi
 
-      ##
-      ## copy resources
-      ##
-      if [ "${OPTION_SHARE}" = "YES" ]
+      if [ "${OPTION_RESOURCES}" = 'YES' ]
       then
+         ##
+         ## copy resources
+         ##
          sources="${srcdir}/share
 ${srcdir}/usr/share
 ${srcdir}/usr/local/share"
@@ -329,7 +356,7 @@ ${srcdir}/usr/local/share"
          dispense_resources "${sources}" "${dstdir}"
       fi
 
-      if [ "${OPTION_FRAMEWORKS}" = "YES" ]
+      if [ "${OPTION_FRAMEWORKS}" = 'YES' ]
       then
          ##
          ## copy frameworks
@@ -364,7 +391,7 @@ ${srcdir}/Library/Frameworks"
    # probably should hack all executables with install_name_tool that contain .ref
    #
    # now copy over the rest of the output
-   if [ "${OPTION_DISPENSE_OTHER_PRODUCT}" = "YES" ]
+   if [ "${OPTION_DISPENSE_OTHER_PRODUCT}" = 'YES' ]
    then
       local usrlocal
 
@@ -382,7 +409,7 @@ ${srcdir}/Library/Frameworks"
          [ $? -eq 0 ]  || fail "moving files from ${srcdir} to ${dst} failed"
       fi
 
-      if [ "$MULLE_FLAG_LOG_FLUFF" = "YES"  ]
+      if [ "$MULLE_FLAG_LOG_FLUFF" = 'YES'  ]
       then
          if dir_has_files "${srcdir}"
          then
@@ -444,15 +471,12 @@ dispense_copy_main()
    ROOT_DIR="`pwd -P`"
 
    local OPTION_NAME
-   local OPTION_FRAMEWORKS="NO"
-   local OPTION_SHARE="YES"
-   local OPTION_EXECUTABLES="YES"
-
-   case "${MULLE_UNAME}" in
-      darwin)
-         OPTION_FRAMEWORKS="DEFAULT"
-      ;;
-   esac
+   local OPTION_FRAMEWORKS='DEFAULT'
+   local OPTION_LIBRARIES='DEFAULT'
+   local OPTION_EXECUTABLES='DEFAULT'
+   local OPTION_RESOURCES='DEFAULT'
+   local OPTION_HEADERS='DEFAULT'
+   local OPTION_SHARE='YES'
 
    while [ $# -ne 0 ]
    do
@@ -469,28 +493,49 @@ dispense_copy_main()
          ;;
 
          --no-executables)
-            OPTION_EXECUTABLES="NO"
+            OPTION_EXECUTABLES='NO'
          ;;
 
          --executables)
-            OPTION_EXECUTABLES="YES"
+            OPTION_EXECUTABLES='YES'
          ;;
 
-         --no-share)
-            OPTION_SHARE="NO"
+         --no-share|--no-resources)
+            OPTION_RESOURCES='NO'
          ;;
 
-         --share)
-            OPTION_SHARE="YES"
+         --share|--resources)
+            OPTION_RESOURCES='YES'
          ;;
 
          --no-frameworks)
-            OPTION_FRAMEWORKS="NO"
+            OPTION_FRAMEWORKS='NO'
          ;;
 
          --frameworks)
-            OPTION_FRAMEWORKS="YES"
+            OPTION_FRAMEWORKS='YES'
          ;;
+
+         --headers)
+            OPTION_HEADERS='YES'
+         ;;
+
+         --no-headers)
+            OPTION_HEADERS='NO'
+         ;;
+
+         --only-headers)
+            OPTION_HEADERS='YES'
+            OPTION_FRAMEWORKS='NO'
+            OPTION_LIBRARIES='NO'
+            OPTION_EXECUTABLES='NO'
+            OPTION_RESOURCES='NO'  # could be generated
+         ;;
+
+         --frameworks)
+            OPTION_FRAMEWORKS='YES'
+         ;;
+
 
          --header-dir)
             [ $# -eq 1 ] && fail "Missing argument to \"$1\""
@@ -517,9 +562,14 @@ dispense_copy_main()
    local srcdir="$1"
    local dstdir="$2"
 
-   [ ! -d "${srcdir}" ] && fail "\"${srcdir}\" does not exist"
+   [ -z "${srcdir}" ] && fail "Source must not be empty"
+   [ -z "${dstdir}" ] && fail "Destination must not be empty"
 
-   if [ "${FLAG_LS}" = "YES" ]
+   [ ! -d "${srcdir}" ] && fail "Source \"${srcdir}\" does not exist"
+
+   [ "${srcdir}" = "${dstdir}" ] && fail "Source and destination must not be same"
+
+   if [ "${FLAG_LS}" = 'YES' ]
    then
       ls -lR "${srcdir}" >&2
       echo >&2
@@ -551,6 +601,18 @@ dispense_copy_main()
    then
       r_guess_project_name "${srcdir}"
       name="${RVAL}"
+   fi
+
+   [ "${OPTION_HEADERS}" = 'DEFAULT' ]     && OPTION_HEADERS='YES'
+   [ "${OPTION_EXECUTABLES}" = 'DEFAULT' ] && OPTION_EXECUTABLES='YES'
+   [ "${OPTION_LIBRARIES}" = 'DEFAULT' ]   && OPTION_LIBRARIES='YES'
+   [ "${OPTION_RESOURCES}" = 'DEFAULT' ]   && OPTION_RESOURCES='YES'
+
+   if [ "${OPTION_FRAMEWORKS}" = 'DEFAULT' -a "${MULLE_UNAME}" = "darwin" ]
+   then
+      OPTION_FRAMEWORKS='YES'
+   else
+      OPTION_FRAMEWORKS='NO'
    fi
 
    log_verbose "Collecting and dispensing \"${name}\" products"

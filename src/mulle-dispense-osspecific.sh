@@ -39,6 +39,10 @@ RESOURCE_DIR_NAME="${OPTION_RESOURCE_DIR_NAME:-share}"
 BIN_DIR_NAME="${OPTION_BIN_DIR_NAME:-bin}"
 SBIN_DIR_NAME="${OPTION_BIN_DIR_NAME:-sbin}"
 
+#
+# TODO: move all of this into MULLE_PLATFORM and query that
+#
+
 # overrides from front to back
 EXE_SUFFIXES=""
 
