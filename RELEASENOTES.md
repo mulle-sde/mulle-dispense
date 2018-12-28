@@ -1,3 +1,7 @@
+### 0.6.1
+
+* improve README.md, miniscule code improvements
+
 ## 0.6.0
 
 * tune what gets dispensed with commandline parameters like --no-headers

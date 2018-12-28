@@ -1,6 +1,8 @@
-# mulle-dispense, 🚰 Copy build products and reorganize them
+# mulle-dispense
 
-![Last version](https://img.shields.io/github/tag/{{PUBLISHER}}/mulle-dispense.svg)
+🚰 Copy build products and reorganize them
+
+![Last version](https://img.shields.io/github/tag/mulle-sde/mulle-dispense.svg)
 
 ... for Linux, OS X, FreeBSD, Windows
 

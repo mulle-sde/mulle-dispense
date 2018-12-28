@@ -80,8 +80,9 @@ dispense_files()
    then
       if dir_has_files "${src}"
       then
+         r_filepath_concat "${dstdir}" "${dirpath}"
+         dst="${RVAL}"
 
-         dst="`filepath_concat "${dstdir}" "${dirpath}"`"
          mkdir_if_missing "${dst}"
 
          # this fails with more nested header set ups, need to fix!
