@@ -595,8 +595,6 @@ dispense_copy_main()
    fi
 
    local name
-   local RVAL
-
    name="${OPTION_NAME}"
    if [ -z "${name}" ]
    then
