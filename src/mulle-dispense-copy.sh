@@ -614,7 +614,7 @@ dispense_copy_main()
       OPTION_FRAMEWORKS='NO'
    fi
 
-   log_verbose "Collecting and dispensing \"${name}\" products"
+   log_fluff "Collecting and dispensing \"${name}\" products"
 
    collect_and_dispense_product "${srcdir}" "${dstdir}"
 }
