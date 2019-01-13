@@ -1,3 +1,7 @@
+### 0.6.2
+
+* a bit less verbose
+
 ### 0.6.1
 
 * improve README.md, miniscule code improvements

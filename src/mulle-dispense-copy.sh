@@ -199,24 +199,37 @@ _dispense_binaries()
       then
          dst="${dstdir}${subpath}"
 
-         local mv_force
-
-         mv_force="${MULLE_DISPENSE_LIBEXEC_DIR}/mulle-dispense-mv-force"
-
          log_fluff "Moving binaries from \"${src}\" to \"${dst}\""
          mkdir_if_missing "${dst}"
-         exekutor find "${src}" -xdev \
-                                -mindepth 1 \
-                                -maxdepth 1 \
-                                \( -type "${findtype}" -o -type "${findtype2}" \) \
-                                -print0 | \
-            exekutor xargs -0 \
-                           -I % \
-                           "${mv_force}" \
-                           ${OPTION_COPYMOVEFLAGS} \
-                           "${copyflag}" \
-                           % \
-                           "${dst}/" >&2
+
+         # Use XARGS here if available for a bit more parallelism
+         # provide an alternate implementation if xargs isnt there
+         if [ ! -z "${XARGS}" ]
+         then
+            exekutor find "${src}" -xdev \
+                                   -mindepth 1 \
+                                   -maxdepth 1 \
+                                   \( -type "${findtype}" -o -type "${findtype2}" \) \
+                                   -print0 | \
+               exekutor "${XARGS}" -0 \
+                              -I % \
+                              "${MV_FORCE}" \
+                              ${OPTION_COPYMOVEFLAGS} \
+                              "${copyflag}" \
+                              % \
+                              "${dst}/" >&2
+         else
+            exekutor find "${src}" -xdev \
+                                   -mindepth 1 \
+                                   -maxdepth 1 \
+                                   \( -type "${findtype}" -o -type "${findtype2}" \) \
+                                   -exec "${MV_FORCE}" ${OPTION_COPYMOVEFLAGS} \
+                                                       "${copyflag}" \
+                                                       {} \
+                                                       "${dst}/" \
+                                                       \;
+         fi
+
          [ $? -eq 0 ]  || exit 1
       else
          log_debug "But there are none"
@@ -253,6 +266,12 @@ collect_and_dispense_product()
 
    local srcdir="$1"
    local dstdir="$2"
+
+   local MV_FORCE
+   local XARGS
+
+   MV_FORCE="${MULLE_DISPENSE_LIBEXEC_DIR}/mulle-dispense-mv-force"
+   XARGS="`command -v xargs`"
 
    if [ "${MULLE_FLAG_LOG_SETTINGS}" = 'YES'  ]
    then
@@ -405,8 +424,19 @@ ${srcdir}/Library/Frameworks"
          dst="${dstdir}${usrlocal}"
 
          log_fluff "Copying everything from \"${srcdir}\" to \"${dst}\""
-         exekutor find "${srcdir}" -xdev -mindepth 1 -maxdepth 1 -print0 | \
-               exekutor xargs -0 -I % mv ${OPTION_COPYMOVEFLAGS} -f % "${dst}" >&2
+         if [ ! -z "${XARGS}" ]
+         then
+            exekutor find "${srcdir}" -xdev \
+                                      -mindepth 1 \
+                                      -maxdepth 1 \
+                                      -print0 | \
+               exekutor "${XARGS}" -0 -I % mv ${OPTION_COPYMOVEFLAGS} -f % "${dst}/" >&2
+         else
+            exekutor find "${srcdir}" -xdev \
+                                      -mindepth 1 \
+                                      -maxdepth 1 \
+                                      -exec mv ${OPTION_COPYMOVEFLAGS} {} "${dst}/" \;
+         fi
          [ $? -eq 0 ]  || fail "moving files from ${srcdir} to ${dst} failed"
       fi
 
