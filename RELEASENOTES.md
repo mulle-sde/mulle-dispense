@@ -1,3 +1,7 @@
+### 0.6.3
+
+* small beauty fixes in code
+
 ### 0.6.2
 
 * a bit less verbose

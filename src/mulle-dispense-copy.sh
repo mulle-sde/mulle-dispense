@@ -112,8 +112,7 @@ dispense_headers()
    headerpath="${OPTION_HEADER_DIR:-${HEADER_DIR_NAME}}"
 
    local src
-   IFS="
-"
+   IFS=$'\n'
    for src in $sources
    do
       IFS="${DEFAULT_IFS}"
@@ -136,8 +135,7 @@ dispense_resources()
    resourcepath="${OPTION_DISPENSE_RESOURCES_DIR:-/${RESOURCE_DIR_NAME}}"
 
    local src
-   IFS="
-"
+   IFS=$'\n'
    for src in $sources
    do
       IFS="${DEFAULT_IFS}"
@@ -160,8 +158,7 @@ dispense_libexec()
    libexecpath="${OPTION_DISPENSE_LIBEXEC_DIR:-/${LIBEXEC_DIR_NAME}}"
 
    local src
-   IFS="
-"
+   IFS=$'\n'
    for src in $sources
    do
       IFS="${DEFAULT_IFS}"
@@ -248,8 +245,7 @@ dispense_binaries()
    local sources="$1" ; shift
 
    local src
-   IFS="
-"
+   IFS=$'\n'
    for src in $sources
    do
       IFS="${DEFAULT_IFS}"
