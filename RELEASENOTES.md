@@ -1,3 +1,7 @@
+### 1.0.2
+
+* hack change version to 1.0.1 because of a debian problem
+
 ### 0.6.3
 
 * small beauty fixes in code
