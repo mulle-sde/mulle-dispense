@@ -109,7 +109,7 @@ dispense_headers()
 
    local headerpath
 
-   headerpath="${OPTION_HEADER_DIR:-${HEADER_DIR_NAME}}"
+   headerpath="${OPTION_HEADER_DIR:-/${HEADER_DIR_NAME}}"
 
    local src
    IFS=$'\n'
@@ -338,6 +338,26 @@ ${srcdir}/usr/local/libexec"
 ${srcdir}/usr/include
 ${srcdir}/usr/local/include"
 
+         if [ "${OPTION_LIFT_HEADERS}" = 'YES' ]
+         then
+            local expanded 
+
+            IFS=$'\n'; set -f
+            for i in ${sources}
+            do
+               IFS="${DEFAULT_IFS}"; set +f
+
+               if [ -d "${i}" ]
+               then
+                  r_add_line "${expanded}" "`find "$i" -mindepth 1 -maxdepth 1 -type d  -print`"
+                  expanded="${RVAL}"
+               fi
+            done
+            IFS="${DEFAULT_IFS}"; set +f
+
+            sources="${expanded}"
+         fi
+
          dispense_headers  "${sources}" "${dstdir}"
       fi
 
@@ -503,6 +523,7 @@ dispense_copy_main()
    local OPTION_EXECUTABLES='DEFAULT'
    local OPTION_RESOURCES='DEFAULT'
    local OPTION_HEADERS='DEFAULT'
+   local OPTION_LIFT_HEADERS='DEFAULT'
    local OPTION_SHARE='YES'
 
    while [ $# -ne 0 ]
@@ -549,6 +570,14 @@ dispense_copy_main()
 
          --no-headers)
             OPTION_HEADERS='NO'
+         ;;
+
+         --lift-headers)
+            OPTION_LIFT_HEADERS='YES'
+         ;;
+
+         --no-lift-headers)
+            OPTION_LIFT_HEADERS='NO'
          ;;
 
          --only-headers)
