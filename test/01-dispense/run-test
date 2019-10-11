@@ -28,7 +28,7 @@ _setup_demo_build_dir()
    esac
 
 
-   IFS=":"; set -f
+   IFS=':'; set -f
    for prefix in ${PREFIX_PATH}
    do
       IFS="${DEFAULT_IFS}"; set +f
