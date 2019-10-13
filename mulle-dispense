@@ -258,11 +258,8 @@ _init()
    . "${MULLE_BASHFUNCTIONS_LIBEXEC_DIR}/mulle-file.sh" ||
       fail "failed to load bashfunctions from ${MULLE_BASHFUNCTIONS_LIBEXEC_DIR}"
 
-   local _libexec_dir
-
-   _get_libexec_dir "$0" "mulle-dispense" "mulle-dispense-copy.sh"
-
-   MULLE_DISPENSE_LIBEXEC_DIR="${_libexec_dir}"
+   r_get_libexec_dir "$0" "mulle-dispense" "mulle-dispense-copy.sh"
+   MULLE_DISPENSE_LIBEXEC_DIR="${RVAL}"
 
    #
    # minimal setup exit

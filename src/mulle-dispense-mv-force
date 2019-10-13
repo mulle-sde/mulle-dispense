@@ -64,7 +64,7 @@ main()
 
    case "${dst}" in
       */)
-         r_fast_basename "${src}"
+         r_basename "${src}"
          name="${RVAL}"
          erase="${dst}/${name}"
       ;;

@@ -340,7 +340,7 @@ ${srcdir}/usr/local/include"
 
          if [ "${OPTION_LIFT_HEADERS}" = 'YES' ]
          then
-            local expanded 
+            local expanded
 
             IFS=$'\n'; set -f
             for i in ${sources}
@@ -483,9 +483,9 @@ r_guess_project_name()
 
    while :
    do
-      r_fast_dirname "${directory}"
+      r_dirname "${directory}"
       parent="${RVAL}"
-      r_fast_basename "${directory}"
+      r_basename "${directory}"
       name="${RVAL}"
 
       directory="${parent}"
