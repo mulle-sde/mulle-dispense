@@ -31,7 +31,7 @@
 #
 [ "${TRACE}" = 'YES' -o "${MULLE_DISPENSE_TRACE}" = 'YES' ] && set -x && : "$0" "$@"
 
-MULLE_EXECUTABLE_VERSION=1.1.0
+MULLE_EXECUTABLE_VERSION=1.2.0
 
 
 #
@@ -295,4 +295,16 @@ esac
 
 
 _init "$@" # needs params
-main "$@"
+
+quote="'"
+args=""
+for arg in "$@"
+do
+   arg="${arg//${quote}/${quote}\"${quote}\"${quote}}"
+   args="${args} '${arg}'"
+done
+
+unset quote
+unset arg
+
+eval main "${MULLE_DISPENSE_FLAGS}" "${args}"

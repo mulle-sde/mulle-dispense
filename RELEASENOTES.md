@@ -1,3 +1,9 @@
+## 1.2.0
+
+* changed to mulle-bashfunctions 2 call convention
+* moved to mulle-bashfunctions v2
+
+
 ### 1.0.2
 
 * hack change version to 1.0.1 because of a debian problem
