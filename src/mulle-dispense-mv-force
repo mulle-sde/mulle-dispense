@@ -32,15 +32,24 @@
 [ "${TRACE}" = 'YES' ] && set -x && : "$0" "$@"
 
 #
-# remove destination directory if it exists
+# removes destination directory if it exists
 #
 main()
 {
    local arguments
+   local cmd='mv'
+
+   if [ "$1" = "-c" ]
+   then
+      cmd='cp -a'
+      shift
+   fi
 
    if [ $# -lt 2 ]
    then
-      fail "usage: mulle-dispense-mv-force <source> <destination>"
+      fail "usage: mulle-dispense-mv-force [-c] <source> <destination>
+                   Removes destination directory if it exists
+                   Use -c to copy"
    fi
 
    while [ $# -gt 2 ]
@@ -75,8 +84,7 @@ main()
    esac
 
    rmdir_safer "${erase}" || exit 1
-
-   eval_exekutor "mv -f ${arguments} '${src}' '${dst}'"
+   eval_exekutor "${cmd} -f ${arguments} '${src}' '${dst}'"
 }
 
 

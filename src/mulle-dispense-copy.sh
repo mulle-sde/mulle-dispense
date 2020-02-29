@@ -37,10 +37,18 @@ dispense_usage()
 Usage:
    ${MULLE_USAGE_NAME} dispense [options] <srcdir> <dstdir>
 
-   Copy stuff from srcdir to dstdir.
+   Copy stuff from srcdir to dstdir, possibly reorganizing it on the fly.
+
+   Example:
+      MULLE_DISPENSE_SEARCH_LIB_PATH=main/libraster.a \
+         mulle-dispense dispense --header-dir include/swrast --copy main /tmp
 
 Options:
-   -n <name> : project name for better logging output
+   --header-dir <dir> : specify directory name to place include files
+   --lift-headers     : move header files up from subdirectories
+   --move             : move instead of copy
+   --name <name>      : project name for better logging output
+
 EOF
    exit 1
 }
@@ -74,28 +82,51 @@ dispense_files()
    local dstdir="$3"
    local dirpath="$4"
 
+   [ -z "${src}" ] && return
+
    local dst
 
-   if [ -d "${src}" ]
+   r_filepath_concat "${dstdir}" "${dirpath}"
+   dst="${RVAL}"
+
+   if [ ! -e "${src}" ]
    then
-      if dir_has_files "${src}"
-      then
-         r_filepath_concat "${dstdir}" "${dirpath}"
-         dst="${RVAL}"
+      log_debug "Nothing to dispense from \"${src}\" as it doesn't exist"
+      return 1
+   fi
 
-         mkdir_if_missing "${dst}"
+   if [ ! -d "${src}" ]
+   then
+      # special case it's a file
+      log_fluff "Dispensing file from \"${src}\" to \"${dst}\""
+      mkdir_if_missing "${dst}"
 
-         # this fails with more nested header set ups, need to fix!
+      exekutor "${MV_FORCE}" \
+                  ${MV_FORCE_FLAG} \
+                  ${OPTION_COPYMOVEFLAGS} \
+                  "${copyflag}" \
+                  "${src}" \
+                  "${dst}/" || exit 1
+      return
 
-         log_fluff "Copying ${ftype} from \"${src}\" to \"${dst}\""
-         exekutor cp -Ra ${OPTION_COPYMOVEFLAGS} "${src}"/* "${dst}" >&2 || exit 1
+   fi
 
-         _rmdir_safer "${src}"
-      else
-         log_debug "Nothing to copy from \"${src}\", as there are no ${ftype} files"
-      fi
-   else
-      log_debug "Nothing to copy from \"${src}\" as it doesn't exist"
+   if ! dir_has_files "${src}"
+   then
+      log_debug "Nothing to dispense from \"${src}\", as there are no ${ftype} files"
+      return 1
+   fi
+
+   mkdir_if_missing "${dst}"
+
+   # this fails with more nested header set ups, need to fix!
+
+   log_fluff "Dispensing ${ftype} from \"${src}\" to \"${dst}\""
+   exekutor cp -Ra ${OPTION_COPYMOVEFLAGS} "${src}"/* "${dst}" >&2 || exit 1
+
+   if [ "${OPTION_MOVE}" = 'YES' ]
+   then
+      _rmdir_safer "${src}"
    fi
 }
 
@@ -112,7 +143,7 @@ dispense_headers()
    headerpath="${OPTION_HEADER_DIR:-/${HEADER_DIR_NAME}}"
 
    local src
-   IFS=$'\n'
+   IFS=':'
    for src in $sources
    do
       IFS="${DEFAULT_IFS}"
@@ -135,7 +166,8 @@ dispense_resources()
    resourcepath="${OPTION_DISPENSE_RESOURCES_DIR:-/${RESOURCE_DIR_NAME}}"
 
    local src
-   IFS=$'\n'
+
+   IFS=$':'
    for src in $sources
    do
       IFS="${DEFAULT_IFS}"
@@ -158,7 +190,8 @@ dispense_libexec()
    libexecpath="${OPTION_DISPENSE_LIBEXEC_DIR:-/${LIBEXEC_DIR_NAME}}"
 
    local src
-   IFS=$'\n'
+
+   IFS=$':'
    for src in $sources
    do
       IFS="${DEFAULT_IFS}"
@@ -178,9 +211,13 @@ _dispense_binaries()
    local dstdir="$3"
    local subpath="$4"
 
+   [ -z "${src}" ] && return
+
    local dst
    local findtype2
    local copyflag
+
+   dst="${dstdir}${subpath}"
 
    findtype2="l"
    copyflag="-f"
@@ -188,53 +225,71 @@ _dispense_binaries()
    then
       copyflag="-n"
    fi
-   log_debug "Consider copying binaries from \"${src}\" for type \"${findtype}/${findtype2}\""
 
-   if [ -d "${src}" ]
+   log_debug "Consider dispensing binaries from \"${src}\" for type \"${findtype}/${findtype2}\""
+
+   if [ ! -e "${src}" ]
    then
-      if dir_has_files "${src}"
-      then
-         dst="${dstdir}${subpath}"
-
-         log_fluff "Moving binaries from \"${src}\" to \"${dst}\""
-         mkdir_if_missing "${dst}"
-
-         # Use XARGS here if available for a bit more parallelism
-         # provide an alternate implementation if xargs isnt there
-         if [ ! -z "${XARGS}" ]
-         then
-            exekutor find "${src}" -xdev \
-                                   -mindepth 1 \
-                                   -maxdepth 1 \
-                                   \( -type "${findtype}" -o -type "${findtype2}" \) \
-                                   -print0 | \
-               exekutor "${XARGS}" -0 \
-                              -I % \
-                              "${MV_FORCE}" \
-                              ${OPTION_COPYMOVEFLAGS} \
-                              "${copyflag}" \
-                              % \
-                              "${dst}/" >&2
-         else
-            exekutor find "${src}" -xdev \
-                                   -mindepth 1 \
-                                   -maxdepth 1 \
-                                   \( -type "${findtype}" -o -type "${findtype2}" \) \
-                                   -exec "${MV_FORCE}" ${OPTION_COPYMOVEFLAGS} \
-                                                       "${copyflag}" \
-                                                       {} \
-                                                       "${dst}/" \
-                                                       \;
-         fi
-
-         [ $? -eq 0 ]  || exit 1
-      else
-         log_debug "But there are none"
-      fi
-      _rmdir_safer "${src}"
-   else
       log_debug "But it doesn't exist"
+      return 1
    fi
+
+   if [ ! -d "${src}" ]
+   then
+      # special case it's a file
+      log_fluff "Dispensing binary from \"${src}\" to \"${dst}\""
+      mkdir_if_missing "${dst}"
+
+      exekutor "${MV_FORCE}" \
+                  ${MV_FORCE_FLAG} \
+                  ${OPTION_COPYMOVEFLAGS} \
+                  "${copyflag}" \
+                  "${src}" \
+                  "${dst}/" || exit 1
+      return
+   fi
+
+   if ! dir_has_files "${src}"
+   then
+      log_debug "But there are none"
+      return
+   fi
+
+   log_fluff "Dispensing binaries from \"${src}\" to \"${dst}\""
+   mkdir_if_missing "${dst}"
+
+   # Use XARGS here if available for a bit more parallelism
+   # provide an alternate implementation if xargs isnt there
+   if [ ! -z "${XARGS}" ]
+   then
+      exekutor find "${src}" -xdev \
+                             -mindepth 1 \
+                             -maxdepth 1 \
+                             \( -type "${findtype}" -o -type "${findtype2}" \) \
+                             -print0 | \
+      exekutor "${XARGS}" -0 \
+                        -I % \
+                        "${MV_FORCE}" \
+                           ${MV_FORCE_FLAG} \
+                           ${OPTION_COPYMOVEFLAGS} \
+                           "${copyflag}" \
+                           % \
+                           "${dst}/" >&2
+   else
+      exekutor find "${src}" -xdev \
+                             -mindepth 1 \
+                             -maxdepth 1 \
+                             \( -type "${findtype}" -o -type "${findtype2}" \) \
+                             -exec "${MV_FORCE}"
+                                       ${MV_FORCE_FLAG} \
+                                       ${OPTION_COPYMOVEFLAGS} \
+                                       "${copyflag}" \
+                                       {} \
+                                       "${dst}/" \
+                                       \;
+   fi
+
+   [ $? -eq 0 ]  || exit 1
 }
 
 
@@ -245,7 +300,7 @@ dispense_binaries()
    local sources="$1" ; shift
 
    local src
-   IFS=$'\n'
+   IFS=$':'
    for src in $sources
    do
       IFS="${DEFAULT_IFS}"
@@ -264,10 +319,16 @@ collect_and_dispense_product()
    local dstdir="$2"
 
    local MV_FORCE
+   local MV_FORCE_FLAG
    local XARGS
 
    MV_FORCE="${MULLE_DISPENSE_LIBEXEC_DIR}/mulle-dispense-mv-force"
    XARGS="`command -v xargs`"
+
+   if [ "${OPTION_MOVE}" = 'NO' ]
+   then
+      MV_FORCE_FLAG="-c"
+   fi
 
    if [ "${MULLE_FLAG_LOG_SETTINGS}" = 'YES'  ]
    then
@@ -297,10 +358,8 @@ collect_and_dispense_product()
       mkdir_if_missing "${dstdir}/${LIBRARY_DIR_NAME}"
    fi
 
-
    #
-   # probably should use install_name_tool to hack all dylib paths that contain .ref
-   # (will this work with signing stuff ?)
+   # TODO: get search paths from mulle_platform ?
    #
    if true
    then
@@ -313,20 +372,16 @@ collect_and_dispense_product()
          ## TODO: isn't cmake's output directory also platform specific ?
          ##
          # order is important, last one wins!
-         sources="${srcdir}/lib
-${srcdir}/usr/lib
-${srcdir}/usr/local/lib"
-
-         dispense_binaries "${sources}" "f" "${dstdir}" "/${LIBRARY_DIR_NAME}"
+         r_colon_concat "${srcdir}/lib:${srcdir}/usr/lib:${srcdir}/usr/local/lib" \
+                        "${MULLE_DISPENSE_SEARCH_LIB_PATH}"
+         dispense_binaries "${RVAL}" "f" "${dstdir}" "/${LIBRARY_DIR_NAME}"
 
          ##
          ## copy libexec
          ##
-         sources="${srcdir}/libexec
-${srcdir}/usr/libexec
-${srcdir}/usr/local/libexec"
-
-         dispense_libexec "${sources}" "${dstdir}"
+         r_colon_concat "${srcdir}/libexec:${srcdir}/usr/libexec:${srcdir}/usr/local/libexec" \
+                        "${MULLE_DISPENSE_SEARCH_LIBEXEC_PATH}"
+         dispense_libexec "${RVAL}" "${dstdir}"
       fi
 
       if [ "${OPTION_HEADERS}" = 'YES' ]
@@ -334,15 +389,15 @@ ${srcdir}/usr/local/libexec"
          ##
          ## copy headers
          ##
-         sources="${srcdir}/include
-${srcdir}/usr/include
-${srcdir}/usr/local/include"
+         r_colon_concat "${srcdir}/include:${srcdir}/usr/include:${srcdir}/usr/local/include" \
+                        "${MULLE_DISPENSE_SEARCH_INCLUDE_PATH}"
+         sources="${RVAL}"
 
          if [ "${OPTION_LIFT_HEADERS}" = 'YES' ]
          then
             local expanded
 
-            IFS=$'\n'; set -f
+            IFS=$':'; set -f
             for i in ${sources}
             do
                IFS="${DEFAULT_IFS}"; set +f
@@ -367,17 +422,13 @@ ${srcdir}/usr/local/include"
          ##
          ## copy bin and sbin
          ##
-         sources="${srcdir}/bin
-${srcdir}/usr/bin
-${srcdir}/usr/local/bin"
+         r_colon_concat "${srcdir}/bin:${srcdir}/usr/bin:${srcdir}/usr/local/bin" \
+                        "${MULLE_DISPENSE_SEARCH_BIN_PATH}"
+         dispense_binaries "${RVAL}" "f" "${dstdir}" "/${BIN_DIR_NAME}"
 
-         dispense_binaries "${sources}" "f" "${dstdir}" "/${BIN_DIR_NAME}"
-
-         sources="${srcdir}/sbin
-${srcdir}/usr/sbin
-${srcdir}/usr/local/sbin"
-
-         dispense_binaries "${sources}" "f" "${dstdir}" "/${SBIN_DIR_NAME}"
+         r_colon_concat "${srcdir}/sbin:${srcdir}/usr/sbin:${srcdir}/usr/local/sbin" \
+                        "${MULLE_DISPENSE_SEARCH_SBIN_PATH}"
+         dispense_binaries "${RVAL}" "f" "${dstdir}" "/${SBIN_DIR_NAME}"
       fi
 
       if [ "${OPTION_RESOURCES}" = 'YES' ]
@@ -385,11 +436,9 @@ ${srcdir}/usr/local/sbin"
          ##
          ## copy resources
          ##
-         sources="${srcdir}/share
-${srcdir}/usr/share
-${srcdir}/usr/local/share"
-
-         dispense_resources "${sources}" "${dstdir}"
+         r_colon_concat "${srcdir}/share:${srcdir}/usr/share:${srcdir}/usr/local/share" \
+                        "${MULLE_DISPENSE_SEARCH_SHARE_PATH}"
+         dispense_resources "${RVAL}" "${dstdir}"
       fi
 
       if [ "${OPTION_FRAMEWORKS}" = 'YES' ]
@@ -397,30 +446,32 @@ ${srcdir}/usr/local/share"
          ##
          ## copy frameworks
          ##
-         sources="${srcdir}/System/Library/Frameworks
-${srcdir}/Frameworks
-${srcdir}/Library/Frameworks"
+         r_colon_concat "${srcdir}/System/Library/Frameworks:${srcdir}/Frameworks:${srcdir}/Library/Frameworks" \
+                        "${MULLE_DISPENSE_FRAMEWORKS_DIR}"
 
          dispense_binaries "${sources}" "d" "${dstdir}" "/${FRAMEWORK_DIR_NAME}"
       fi
    fi
 
-   local dst
-   local src
-
-   #
-   # Delete empty dirs if so
-   #
-   src="${srcdir}/usr/local"
-   if ! dir_has_files "${src}"
+   if [ "${OPTION_MOVE}" = 'YES' ]
    then
-      _rmdir_safer "${src}"
-   fi
+      local dst
+      local src
 
-   src="${srcdir}/usr"
-   if ! dir_has_files "${src}"
-   then
-      _rmdir_safer "${src}"
+      #
+      # Delete empty dirs if so
+      #
+      src="${srcdir}/usr/local"
+      if ! dir_has_files "${src}"
+      then
+         _rmdir_safer "${src}"
+      fi
+
+      src="${srcdir}/usr"
+      if ! dir_has_files "${src}"
+      then
+         _rmdir_safer "${src}"
+      fi
    fi
 
    #
@@ -433,13 +484,13 @@ ${srcdir}/Library/Frameworks"
 
       usrlocal="${OPTION_DISPENSE_OTHER_DIR:-/usr/local}"
 
-      log_fluff "Considering copying ${srcdir}/*"
+      log_fluff "Considering dispensing ${srcdir}/*"
 
       if dir_has_files "${srcdir}"
       then
          dst="${dstdir}${usrlocal}"
 
-         log_fluff "Copying everything from \"${srcdir}\" to \"${dst}\""
+         log_fluff "Dispensing everything from \"${srcdir}\" to \"${dst}\""
          if [ ! -z "${XARGS}" ]
          then
             exekutor find "${srcdir}" -xdev \
@@ -468,7 +519,10 @@ ${srcdir}/Library/Frameworks"
       fi
    fi
 
-   _rmdir_safer "${srcdir}"
+   if [ "${OPTION_MOVE}" = 'YES' ]
+   then
+      _rmdir_safer "${srcdir}"
+   fi
 
    log_debug "Done collecting and dispensing product"
 }
@@ -525,12 +579,21 @@ dispense_copy_main()
    local OPTION_HEADERS='DEFAULT'
    local OPTION_LIFT_HEADERS='DEFAULT'
    local OPTION_SHARE='YES'
+   local OPTION_MOVE='NO'
 
    while [ $# -ne 0 ]
    do
       case "$1" in
          -h*|--help|help)
             ${USAGE}
+         ;;
+
+         -c|--copy)
+            OPTION_MOVE='NO'
+         ;;
+
+         -m|--move)
+            OPTION_MOVE='YES'
          ;;
 
          -n|--name|--project-name)
@@ -601,7 +664,7 @@ dispense_copy_main()
          ;;
 
          -*)
-            log_error "${MULLE_EXECUTABLE_FAIL_PREFIX}: Unknown fetch option $1"
+            log_error "${MULLE_EXECUTABLE_FAIL_PREFIX}: Unknown dispense option $1"
             dispense_usage
          ;;
 

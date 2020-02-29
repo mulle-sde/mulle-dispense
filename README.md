@@ -8,7 +8,7 @@
 
 
 After having build something with your favorite build tool like `make`,
-this tool will copy the results to a destination folder.
+this tool will copy the build results to a destination folder.
 
 Headers can be reorganized to fit a canonical "subfolder for every library"
 scheme, if so desired.

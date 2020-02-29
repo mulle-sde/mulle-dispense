@@ -1,3 +1,11 @@
+# 2.0.0
+
+* mulle-dispense now copies instead of moves per default, which is basically what was advertised all along ...
+* use the --move option on the dispense command to move as before
+* use ``MULLE_DISPENSE_SEARCH_LIB_PATH`` and related environment variables to tweak the search path for build products
+* the various ``MULLE_DISPENSE_SEARCH_`<dir>`_PATH`` variables may also reference files,
+
+
 ## 1.2.0
 
 * changed to mulle-bashfunctions 2 call convention
