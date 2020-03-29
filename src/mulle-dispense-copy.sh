@@ -400,7 +400,7 @@ collect_and_dispense_product()
             IFS=$':'; set -f
             for i in ${sources}
             do
-               IFS="${DEFAULT_IFS}"; set +f
+               set +o noglob; IFS="${DEFAULT_IFS}"
 
                if [ -d "${i}" ]
                then
@@ -408,7 +408,7 @@ collect_and_dispense_product()
                   expanded="${RVAL}"
                fi
             done
-            IFS="${DEFAULT_IFS}"; set +f
+            set +o noglob; IFS="${DEFAULT_IFS}"
 
             sources="${expanded}"
          fi

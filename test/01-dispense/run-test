@@ -31,7 +31,7 @@ _setup_demo_build_dir()
    IFS=':'; set -f
    for prefix in ${PREFIX_PATH}
    do
-      IFS="${DEFAULT_IFS}"; set +f
+      set +o noglob; IFS="${DEFAULT_IFS}"
 
       if [ ! -z "${HEADER_DIR_NAME}" ]
       then
@@ -108,7 +108,7 @@ _setup_demo_build_dir()
       fi
    done
 
-   IFS="${DEFAULT_IFS}"; set +f
+   set +o noglob; IFS="${DEFAULT_IFS}"
 }
 
 
