@@ -1,3 +1,7 @@
+### 2.0.1
+
+* installer verbose toggle
+
 # 2.0.0
 
 * mulle-dispense now copies instead of moves per default, which is basically what was advertised all along ...
