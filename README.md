@@ -10,8 +10,18 @@
 After having build something with your favorite build tool like `make`,
 this tool will copy the build results to a destination folder.
 
+Essentially, `mulle-dispense` is a shortcut for:
+
+```
+cd build
+cp -Ra include share lib bin "${DEPENDENCY_DIR}"
+```
+
+But it is a bit more clever than that...
+
 Headers can be reorganized to fit a canonical "subfolder for every library"
 scheme, if so desired.
+
 
 Executable          | Description
 --------------------|--------------------------------
@@ -23,17 +33,7 @@ Executable          | Description
 See [mulle-sde-developer](//github.com/mulle-sde/mulle-sde-developer) how
 to install mulle-sde.
 
-
-## What mulle-dispense does
-
-Essentially, `mulle-dispense` is a shortcut for:
-
-```
-cd build
-cp -Ra include share lib bin "${DEPENDENCY_DIR}"
-```
-
-But mulle-dispense is a bit more clever than that.
+> If you want to do it manually, install mulle-bashfunctions fi
 
 
 ## GitHub and Mulle kybernetiK
