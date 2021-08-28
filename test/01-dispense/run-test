@@ -27,11 +27,12 @@ _setup_demo_build_dir()
       ;;
    esac
 
+   local suffix
 
-   IFS=':'; set -f
+   IFS=':'; shell_disable_glob
    for prefix in ${PREFIX_PATH}
    do
-      set +f; IFS="${DEFAULT_IFS}"
+      shell_enable_glob; IFS="${DEFAULT_IFS}"
 
       if [ ! -z "${HEADER_DIR_NAME}" ]
       then
@@ -51,8 +52,6 @@ _setup_demo_build_dir()
 
          mkdir_if_missing "${libdir}"
 
-         local suffix
-
          for suffix in ${LIBRARY_SUFFIXES}
          do
             redirect_exekutor "${libdir}/${LIBRARY_PREFIX}library${suffix}" echo "// ${libdir}"
@@ -64,8 +63,6 @@ _setup_demo_build_dir()
          local resourcedir="${directory}${prefix}/${RESOURCES_DIR_NAME}"
 
          mkdir_if_missing "${resourcedir}"
-
-         local suffix
 
          for suffix in ${LIBRARY_SUFFIXES}
          do
@@ -108,7 +105,7 @@ _setup_demo_build_dir()
       fi
    done
 
-   set +f; IFS="${DEFAULT_IFS}"
+   shell_enable_glob; IFS="${DEFAULT_IFS}"
 }
 
 
@@ -170,14 +167,14 @@ main()
 {
    MULLE_DISPENSE_FLAGS="$@"
 
-   _options_mini_main "$@"
+   _options_mini_main "$@" && set -x
 
    local directory
    local dstdir
    local srcdir
 
-   directory="`make_tmp_directory`" || exit 1
-   directory="${directory:-/tmp/exekutor}"
+   r_make_tmp_directory || exit 1
+   directory="${RVAL:-/tmp/exekutor}"
 
    srcdir="${directory}/src"
    dstdir="${directory}/dst"
