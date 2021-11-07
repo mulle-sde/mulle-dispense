@@ -31,68 +31,6 @@
 MULLE_DISPENSE_COPY_SH="included"
 
 
-####
-#
-# Prelude to be placed at top of each script. Rerun this script either in
-# bash or zsh, if not already running in either (which can happen!)
-# Allows script to run on systems that either have bash (linux) or
-# zsh (macOS) only by default.
-
-if [ "$1" != --no-auto-shell ]
-then
-   if [ -z "${BASH_VERSION}" -a -z "${ZSH_VERSION}" ]
-   then
-      exe_shell="`command -v "bash" `"
-      exe_shell="${exe_shell:-`command -v "zsh" `}"
-
-      script="$0"
-
-      #
-      # Quote incoming arguments for shell expansion
-      #
-      args=""
-      for arg in "$@"
-      do
-         # True bourne sh doesn't know ${a//b/c} and <<<
-         case "${arg}" in
-            *\'*)
-               # Use cat instead of echo to avoid possible echo -n
-               # problems. Escape single quotes in string.
-               arg="`cat <<EOF | sed -e s/\'/\'\\\"\'\\\"\'/g
-${arg}
-EOF
-`"
-            ;;
-         esac
-         if [ -z "${args}" ]
-         then
-            args="'${arg}'"
-         else
-            args="${args} '${arg}'"
-         fi
-      done
-
-      #
-      # bash/zsh will use arg after -c <arg> as $0, convenient!
-      #
-
-      exec "${exe_shell:-bash}" -c ". ${script} --no-auto-shell ${args}" "${script}"
-   fi
-   if [ ! -z "${BASH_VERSION}" ]
-   then
-      set +o posix
-   fi
-else
-   shift    # get rid of --no-auto-shell
-fi
-
-
-#
-# Main script to follow, runs now either in zsh or bash
-#
-####
-
-
 dispense_usage()
 {
    cat <<EOF >&2
@@ -362,12 +300,36 @@ dispense_binaries()
    local sources="$1" ; shift
 
    local src
+
    IFS=$':'
    for src in $sources
    do
       IFS="${DEFAULT_IFS}"
 
       _dispense_binaries "${src}" "$@"
+   done
+   IFS="${DEFAULT_IFS}"
+}
+
+
+#
+# ideally we would have something lile mulle-dispense-library-force.darwin
+# which would rewrite the hardcoded paths to @rpath something
+#
+dispense_libraries()
+{
+   log_entry "dispense_libraries" "$@"
+
+   local libraries="$1" ; shift
+
+   local lib
+
+   IFS=$':'
+   for lib in $libraries
+   do
+      IFS="${DEFAULT_IFS}"
+
+      _dispense_binaries "${lib}" "$@"  # sic!
    done
    IFS="${DEFAULT_IFS}"
 }
@@ -436,7 +398,7 @@ collect_and_dispense_product()
          # order is important, last one wins!
          r_colon_concat "${srcdir}/lib:${srcdir}/usr/lib:${srcdir}/usr/local/lib" \
                         "${MULLE_DISPENSE_SEARCH_LIB_PATH}"
-         dispense_binaries "${RVAL}" "f" "${dstdir}" "/${LIBRARY_DIR_NAME}"
+         dispense_libraries "${RVAL}" "f" "${dstdir}" "/${LIBRARY_DIR_NAME}"
 
          ##
          ## copy libexec
@@ -775,6 +737,7 @@ dispense_copy_main()
    fi
 
    local name
+
    name="${OPTION_NAME}"
    if [ -z "${name}" ]
    then
