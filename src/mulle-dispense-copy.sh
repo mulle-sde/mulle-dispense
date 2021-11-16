@@ -575,7 +575,7 @@ r_guess_project_name()
       fi
 
       case "${name}" in
-         build|Build|Debug|Release|tmp)
+         build|Build|Debug|Release|Test|tmp)
          ;;
 
          *)
