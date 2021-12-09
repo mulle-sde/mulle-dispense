@@ -266,15 +266,15 @@ _dispense_binaries()
                              -mindepth 1 \
                              -maxdepth 1 \
                              \( -type "${findtype}" -o -type "${findtype2}" \) \
-                             -print0 | \
-      exekutor "${XARGS}" -0 \
-                        -I % \
-                        "${MV_FORCE}" \
-                           ${MV_FORCE_FLAG} \
-                           ${OPTION_COPYMOVEFLAGS} \
-                           "${copyflag}" \
-                           % \
-                           "${dst}/" >&2
+                             -print0 \
+      | exekutor "${XARGS}" -0 \
+                            -I % \
+                            "${MV_FORCE}" \
+                               ${MV_FORCE_FLAG} \
+                               ${OPTION_COPYMOVEFLAGS} \
+                               "${copyflag}" \
+                               % \
+                               "${dst}/" >&2
    else
       exekutor find "${src}" -xdev \
                              -mindepth 1 \
@@ -297,16 +297,16 @@ dispense_binaries()
 {
    log_entry "dispense_binaries" "$@"
 
-   local sources="$1" ; shift
+   local binaries="$1" ; shift
 
-   local src
+   local bin
 
    IFS=$':'
-   for src in $sources
+   for bin in ${binaries}
    do
       IFS="${DEFAULT_IFS}"
 
-      _dispense_binaries "${src}" "$@"
+      _dispense_binaries "${bin}" "$@"
    done
    IFS="${DEFAULT_IFS}"
 }
