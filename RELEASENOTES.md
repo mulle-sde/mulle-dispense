@@ -1,3 +1,10 @@
+# 3.0.0
+
+* big function rename to `<tool>`::`<file>`::`<function>` to make it easier to read hopefully
+* uses mulle-bashfunctions 4 now
+* can now run under zsh if bash is not available
+
+
 ### 2.0.2
 
 * Various small improvements
@@ -146,7 +153,7 @@
 
 ### 0.2.3
 
-* unify mulle-bashfunctions-env usage and help
+* unify mulle-bashfunctions usage and help
 
 ### 0.2.2
 

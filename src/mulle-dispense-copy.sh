@@ -31,7 +31,7 @@
 MULLE_DISPENSE_COPY_SH="included"
 
 
-dispense_usage()
+dispense::copy::usage()
 {
    cat <<EOF >&2
 Usage:
@@ -57,7 +57,7 @@ EOF
 #
 # don't use bashfunctions rmdir_safer
 #
-_rmdir_safer()
+dispense::copy::rmdir_safer()
 {
    [ -z "$1" ] && internal_fail "empty path"
 
@@ -73,9 +73,9 @@ _rmdir_safer()
 # where we expect them. Expect  others to build to
 # <prefix>/include  and <prefix>/lib or <prefix>/Frameworks
 #
-dispense_files()
+dispense::copy::dispense_files()
 {
-   log_entry "dispense_files" "$@"
+   log_entry "dispense::copy::dispense_files" "$@"
 
    local src="$1"
    local ftype="$2"
@@ -126,14 +126,14 @@ dispense_files()
 
    if [ "${OPTION_MOVE}" = 'YES' ]
    then
-      _rmdir_safer "${src}"
+      dispense::copy::rmdir_safer "${src}"
    fi
 }
 
 
-dispense_headers()
+dispense::copy::dispense_headers()
 {
-   log_entry "dispense_headers" "$@"
+   log_entry "dispense::copy::dispense_headers" "$@"
 
    local sources="$1"
    local dstdir="$2"
@@ -148,15 +148,15 @@ dispense_headers()
    do
       IFS="${DEFAULT_IFS}"
 
-      dispense_files "${src}" "headers" "${dstdir}" "${headerpath}"
+      dispense::copy::dispense_files "${src}" "headers" "${dstdir}" "${headerpath}"
    done
    IFS="${DEFAULT_IFS}"
 }
 
 
-dispense_resources()
+dispense::copy::dispense_resources()
 {
-   log_entry "dispense_resources" "$@"
+   log_entry "dispense::copy::dispense_resources" "$@"
 
    local sources="$1"
    local dstdir="$2"
@@ -172,15 +172,15 @@ dispense_resources()
    do
       IFS="${DEFAULT_IFS}"
 
-      dispense_files "${src}" "resources" "${dstdir}" "${resourcepath}"
+      dispense::copy::dispense_files "${src}" "resources" "${dstdir}" "${resourcepath}"
    done
    IFS="${DEFAULT_IFS}"
 }
 
 
-dispense_libexec()
+dispense::copy::dispense_libexec()
 {
-   log_entry "dispense_libexec" "$@"
+   log_entry "dispense::copy::dispense_libexec" "$@"
 
    local sources="$1"
    local dstdir="$2"
@@ -196,15 +196,15 @@ dispense_libexec()
    do
       IFS="${DEFAULT_IFS}"
 
-      dispense_files "${src}" "libexec" "${dstdir}" "${libexecpath}"
+      dispense::copy::dispense_files "${src}" "libexec" "${dstdir}" "${libexecpath}"
    done
    IFS="${DEFAULT_IFS}"
 }
 
 
-_dispense_binaries()
+dispense::copy::_dispense_binaries()
 {
-   log_entry "_dispense_binaries" "$@"
+   log_entry "dispense::copy::_dispense_binaries" "$@"
 
    local src="$1"
    local findtype="$2"
@@ -293,9 +293,9 @@ _dispense_binaries()
 }
 
 
-dispense_binaries()
+dispense::copy::dispense_binaries()
 {
-   log_entry "dispense_binaries" "$@"
+   log_entry "dispense::copy::dispense_binaries" "$@"
 
    local binaries="$1" ; shift
 
@@ -306,7 +306,7 @@ dispense_binaries()
    do
       IFS="${DEFAULT_IFS}"
 
-      _dispense_binaries "${bin}" "$@"
+      dispense::copy::_dispense_binaries "${bin}" "$@"
    done
    IFS="${DEFAULT_IFS}"
 }
@@ -316,9 +316,9 @@ dispense_binaries()
 # ideally we would have something lile mulle-dispense-library-force.darwin
 # which would rewrite the hardcoded paths to @rpath something
 #
-dispense_libraries()
+dispense::copy::dispense_libraries()
 {
-   log_entry "dispense_libraries" "$@"
+   log_entry "dispense::copy::dispense_libraries" "$@"
 
    local libraries="$1" ; shift
 
@@ -329,15 +329,15 @@ dispense_libraries()
    do
       IFS="${DEFAULT_IFS}"
 
-      _dispense_binaries "${lib}" "$@"  # sic!
+      dispense::copy::_dispense_binaries "${lib}" "$@"  # sic!
    done
    IFS="${DEFAULT_IFS}"
 }
 
 
-collect_and_dispense_product()
+dispense::copy::collect_and_dispense_product()
 {
-   log_entry "_collect_and_dispense_product" "$@"
+   log_entry "dispense::copy::collect_and_dispense_product" "$@"
 
    local srcdir="$1"
    local dstdir="$2"
@@ -398,14 +398,14 @@ collect_and_dispense_product()
          # order is important, last one wins!
          r_colon_concat "${srcdir}/lib:${srcdir}/usr/lib:${srcdir}/usr/local/lib" \
                         "${MULLE_DISPENSE_SEARCH_LIB_PATH}"
-         dispense_libraries "${RVAL}" "f" "${dstdir}" "/${LIBRARY_DIR_NAME}"
+         dispense::copy::dispense_libraries "${RVAL}" "f" "${dstdir}" "/${LIBRARY_DIR_NAME}"
 
          ##
          ## copy libexec
          ##
          r_colon_concat "${srcdir}/libexec:${srcdir}/usr/libexec:${srcdir}/usr/local/libexec" \
                         "${MULLE_DISPENSE_SEARCH_LIBEXEC_PATH}"
-         dispense_libexec "${RVAL}" "${dstdir}"
+         dispense::copy::dispense_libexec "${RVAL}" "${dstdir}"
       fi
 
       if [ "${OPTION_HEADERS}" = 'YES' ]
@@ -437,7 +437,7 @@ collect_and_dispense_product()
             sources="${expanded}"
          fi
 
-         dispense_headers  "${sources}" "${dstdir}"
+         dispense::copy::dispense_headers  "${sources}" "${dstdir}"
       fi
 
 
@@ -448,11 +448,11 @@ collect_and_dispense_product()
          ##
          r_colon_concat "${srcdir}/bin:${srcdir}/usr/bin:${srcdir}/usr/local/bin" \
                         "${MULLE_DISPENSE_SEARCH_BIN_PATH}"
-         dispense_binaries "${RVAL}" "f" "${dstdir}" "/${BIN_DIR_NAME}"
+         dispense::copy::dispense_binaries "${RVAL}" "f" "${dstdir}" "/${BIN_DIR_NAME}"
 
          r_colon_concat "${srcdir}/sbin:${srcdir}/usr/sbin:${srcdir}/usr/local/sbin" \
                         "${MULLE_DISPENSE_SEARCH_SBIN_PATH}"
-         dispense_binaries "${RVAL}" "f" "${dstdir}" "/${SBIN_DIR_NAME}"
+         dispense::copy::dispense_binaries "${RVAL}" "f" "${dstdir}" "/${SBIN_DIR_NAME}"
       fi
 
       if [ "${OPTION_RESOURCES}" = 'YES' ]
@@ -462,7 +462,7 @@ collect_and_dispense_product()
          ##
          r_colon_concat "${srcdir}/share:${srcdir}/usr/share:${srcdir}/usr/local/share" \
                         "${MULLE_DISPENSE_SEARCH_SHARE_PATH}"
-         dispense_resources "${RVAL}" "${dstdir}"
+         dispense::copy::dispense_resources "${RVAL}" "${dstdir}"
       fi
 
       if [ "${OPTION_FRAMEWORKS}" = 'YES' ]
@@ -473,7 +473,7 @@ collect_and_dispense_product()
          r_colon_concat "${srcdir}/System/Library/Frameworks:${srcdir}/Frameworks:${srcdir}/Library/Frameworks" \
                         "${MULLE_DISPENSE_FRAMEWORKS_DIR}"
 
-         dispense_binaries "${sources}" "d" "${dstdir}" "/${FRAMEWORK_DIR_NAME}"
+         dispense::copy::dispense_binaries "${sources}" "d" "${dstdir}" "/${FRAMEWORK_DIR_NAME}"
       fi
    fi
 
@@ -488,13 +488,13 @@ collect_and_dispense_product()
       src="${srcdir}/usr/local"
       if ! dir_has_files "${src}"
       then
-         _rmdir_safer "${src}"
+         dispense::copy::rmdir_safer "${src}"
       fi
 
       src="${srcdir}/usr"
       if ! dir_has_files "${src}"
       then
-         _rmdir_safer "${src}"
+         dispense::copy::rmdir_safer "${src}"
       fi
    fi
 
@@ -545,14 +545,17 @@ collect_and_dispense_product()
 
    if [ "${OPTION_MOVE}" = 'YES' ]
    then
-      _rmdir_safer "${srcdir}"
+      dispense::copy::rmdir_safer "${srcdir}"
    fi
 
    log_debug "Done collecting and dispensing product"
 }
 
 
-r_guess_project_name()
+#
+# TODO: guessing is in some other project already
+#
+dispense::copy::r_guess_project_name()
 {
    local directory="$1"
 
@@ -587,9 +590,9 @@ r_guess_project_name()
 }
 
 
-dispense_copy_main()
+dispense::copy::main()
 {
-   log_entry "dispense_copy_main" "$@"
+   log_entry "dispense::copy::main" "$@"
 
    local ROOT_DIR
 
@@ -689,7 +692,7 @@ dispense_copy_main()
 
          -*)
             log_error "${MULLE_EXECUTABLE_FAIL_PREFIX}: Unknown dispense option $1"
-            dispense_usage
+            dispense::copy::usage
          ;;
 
          *)
@@ -700,7 +703,7 @@ dispense_copy_main()
       shift
    done
 
-   [ $# -ne 2 ] && log_error "not enough arguments ($*)" && dispense_usage
+   [ $# -ne 2 ] && log_error "not enough arguments ($*)" && dispense::copy::usage
 
    local srcdir="$1"
    local dstdir="$2"
@@ -741,7 +744,7 @@ dispense_copy_main()
    name="${OPTION_NAME}"
    if [ -z "${name}" ]
    then
-      r_guess_project_name "${srcdir}"
+      dispense::copy::r_guess_project_name "${srcdir}"
       name="${RVAL}"
    fi
 
@@ -759,6 +762,6 @@ dispense_copy_main()
 
    log_fluff "Collecting and dispensing \"${name}\" products"
 
-   collect_and_dispense_product "${srcdir}" "${dstdir}"
+   dispense::copy::collect_and_dispense_product "${srcdir}" "${dstdir}"
 }
 
