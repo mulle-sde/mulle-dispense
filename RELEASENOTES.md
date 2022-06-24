@@ -1,3 +1,8 @@
+## 3.1.0
+
+* rewrote mulle-dispense-mv-force script to support Windows better
+
+
 # 3.0.0
 
 * big function rename to `<tool>`::`<file>`::`<function>` to make it easier to read hopefully

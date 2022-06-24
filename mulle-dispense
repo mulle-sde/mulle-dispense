@@ -1,5 +1,12 @@
 #! /bin/sh
 #
+# shellcheck shell=bash
+# shellcheck disable=SC2236
+# shellcheck disable=SC2166
+# shellcheck disable=SC2006
+# shellcheck disable=SC1090
+# shellcheck disable=SC1091
+#
 #   Copyright (c) 2015-2017 Nat! - Mulle kybernetiK
 #   All rights reserved.
 #
@@ -29,10 +36,10 @@
 #   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 #   POSSIBILITY OF SUCH DAMAGE.
 #
-[ "${TRACE}" = 'YES' -o "${MULLE_DISPENSE_TRACE}" = 'YES' ] && set -x && : "$0" "$@"
+[ "${TRACE:-}" = 'YES' -o "${MULLE_DISPENSE_TRACE:-}" = 'YES' ] && set -x && : "$0" "$@"
 
 
-MULLE_EXECUTABLE_VERSION=3.0.0
+MULLE_EXECUTABLE_VERSION=3.1.0
 
 ##########################################################################
 ###   ###   ###   ###   ###   ###   ###   ###   ###   ###   ###   ###   ###
@@ -45,7 +52,7 @@ MULLE_EXECUTABLE_VERSION=3.0.0
 #
 # Figure out MULLE_BASHFUNCTIONS_LIBEXEC_DIR on this machine if needed.
 #
-if [ -z "${MULLE_BASHFUNCTIONS_LIBEXEC_DIR}" ]
+if ! [ ${MULLE_BASHFUNCTIONS_LIBEXEC_DIR+x} ]
 then
    MULLE_BASHFUNCTIONS_LIBEXEC_DIR="`mulle-bashfunctions libexec-dir`" || exit 1
    export MULLE_BASHFUNCTIONS_LIBEXEC_DIR
@@ -55,7 +62,7 @@ fi
 # The booter reruns the executable either with bash or zsh, whatever the
 # system provides. On the second run --no-auto-shell will be set first.
 #
-if [ "$1" != --no-auto-shell ]
+if [ "${1:-}" != --no-auto-shell ]
 then
    . "${MULLE_BASHFUNCTIONS_LIBEXEC_DIR}/mulle-boot.sh" || exit 1
 else
@@ -71,6 +78,7 @@ fi
 #
 # Do this first to get aliases
 #
+MULLE_EXECUTABLE="${BASH_SOURCE[0]:-${(%):-%x}}"
 . "${MULLE_BASHFUNCTIONS_LIBEXEC_DIR}/mulle-bashfunctions.sh" || exit 1
 
 ###
@@ -80,27 +88,25 @@ fi
 ###   ###   ###   ###   ###   ###   ###   ###   ###   ###   ###   ###   ###
 ###########################################################################
 
-MULLE_EXECUTABLE="${BASH_SOURCE[0]:-${(%):-%x}}"
-
-
 #
 # Determine location of own libexec directory. Which is `src` in development
 # and ../libexec when deployed. MULLE_EXECUTABLE needs to be defined for this.
 #
 
-if [ -z "${MULLE_DISPENSE_LIBEXEC_DIR}" ]
+if ! [ ${MULLE_DISPENSE_LIBEXEC_DIR+x} ]
 then
    r_get_libexec_dir "${MULLE_EXECUTABLE}" "mulle-dispense" "mulle-dispense-copy.sh"
    MULLE_DISPENSE_LIBEXEC_DIR="${RVAL}"
 fi
 
+set +u
 
 #
-# This is the domain::main user interface to mulle-dispense
+# This is the dispense::main user interface to mulle-dispense
 # sorta like git
 #
 
-dodomain::main::print_commands()
+dispense::print_commands()
 {
    local  show_all="${1:-NO}"
 
@@ -121,17 +127,17 @@ dodomain::main::print_commands()
 }
 
 
-dodomain::main::print_flags()
+dispense::print_flags()
 {
    cat <<EOF
    -f            : force operation
 EOF
 
-   options_technical_flags_dodomain::main::usage "         : "
+   options_technical_flags_usage "         : "
 }
 
 
-dodomain::main::usage()
+dispense::usage()
 {
    local verbose="${1:-NO}"
 
@@ -144,14 +150,14 @@ Usage:
 Flags:
 EOF
 
-   dodomain::main::print_flags | LC_ALL=C sort
+   dispense::print_flags | LC_ALL=C sort
 
    cat <<EOF
 
 Commands:
 EOF
 
-   dodomain::main::print_commands "${verbose}"
+   dispense::print_commands "${verbose}"
 
    if [ "${verbose}" = 'NO' ]
    then
@@ -169,7 +175,7 @@ EOF
 }
 
 
-domain::main()
+dispense::main()
 {
    local MULLE_FLAG_ANSWER="ASK"
    local MULLE_FLAG_MAGNUM_FORCE='NO'
@@ -211,7 +217,7 @@ domain::main()
          ;;
 
          -h*|--help|help)
-            dodomain::main::usage "${MULLE_TRACE}"
+            dispense::usage "${MULLE_TRACE}"
          ;;
 
          --version)
@@ -225,7 +231,7 @@ domain::main()
 
          -*)
             log_error "${MULLE_EXECUTABLE_FAIL_PREFIX}: Unknown option \"${argument}\""
-            dodomain::main::usage "${MULLE_TRACE}"
+            dispense::usage "${MULLE_TRACE}"
          ;;
 
          *)
@@ -256,7 +262,7 @@ domain::main()
    case "${cmd}" in
       copy|dispense)
          # shellcheck source=src/mulle-dispense-build.sh
-         . "${MULLE_DISPENSE_LIBEXEC_DIR}/mulle-dispense-copy.sh"
+         . "${MULLE_DISPENSE_LIBEXEC_DIR}/mulle-dispense-copy.sh" || exit 1
 
          dispense::copy::main "$@"
       ;;
@@ -276,9 +282,9 @@ domain::main()
 
       *)
          log_error "${MULLE_EXECUTABLE_FAIL_PREFIX}: Unknown command \"${cmd}\""
-         dodomain::main::usage "${MULLE_TRACE}"
+         dispense::usage "${MULLE_TRACE}"
       ;;
    esac
 }
 
-call_with_flags "domain::main" "${MULLE_DISPENSE_FLAGS}" "$@"
+call_with_flags "dispense::main" "${MULLE_DISPENSE_FLAGS}" "$@"

@@ -1,5 +1,12 @@
 #! /bin/sh
 #
+# shellcheck shell=bash
+# shellcheck disable=SC2236
+# shellcheck disable=SC2166
+# shellcheck disable=SC2006
+# shellcheck disable=SC1090
+# shellcheck disable=SC1091
+#
 #   Copyright (c) 2017 Nat! - Mulle kybernetiK
 #   All rights reserved.
 #
@@ -45,7 +52,7 @@ MULLE_EXECUTABLE_VERSION='0.0.2'
 #
 # Figure out MULLE_BASHFUNCTIONS_LIBEXEC_DIR on this machine if needed.
 #
-if [ -z "${MULLE_BASHFUNCTIONS_LIBEXEC_DIR}" ]
+if ! [ ${MULLE_BASHFUNCTIONS_LIBEXEC_DIR+x} ]
 then
    MULLE_BASHFUNCTIONS_LIBEXEC_DIR="`mulle-bashfunctions libexec-dir`" || exit 1
    export MULLE_BASHFUNCTIONS_LIBEXEC_DIR
@@ -55,7 +62,7 @@ fi
 # The booter reruns the executable either with bash or zsh, whatever the
 # system provides. On the second run --no-auto-shell will be set first.
 #
-if [ "$1" != --no-auto-shell ]
+if [ "${1:-}" != --no-auto-shell ]
 then
    . "${MULLE_BASHFUNCTIONS_LIBEXEC_DIR}/mulle-boot.sh" || exit 1
 else
@@ -71,6 +78,7 @@ fi
 #
 # Do this first to get aliases
 #
+MULLE_EXECUTABLE="${BASH_SOURCE[0]:-${(%):-%x}}"
 . "${MULLE_BASHFUNCTIONS_LIBEXEC_DIR}/mulle-bashfunctions.sh" || exit 1
 
 ###
@@ -80,28 +88,106 @@ fi
 ###   ###   ###   ###   ###   ###   ###   ###   ###   ###   ###   ###   ###
 ###########################################################################
 
-MULLE_EXECUTABLE="${BASH_SOURCE[0]:-${(%):-%x}}"
+r_map_filename()
+{
+   RVAL="$1"
+}
+
 
 #
 # removes destination directory if it exists
 #
 main()
 {
-   local arguments
-   local cmd='mv'
+   local MULLE_TRACE
+   local MULLE_FLAG_EXEKUTOR_DRY_RUN='NO'
+   local MULLE_FLAG_LOG_LOCAL='NO'
+   local MULLE_FLAG_LOG_DEBUG='NO'
+   local MULLE_FLAG_LOG_EXEKUTOR='NO'
+   local MULLE_FLAG_LOG_FLUFF='NO'
+   local MULLE_FLAG_LOG_SCRIPTS='NO'
+   local MULLE_FLAG_LOG_SETTINGS='NO'
+   local MULLE_FLAG_LOG_VERBOSE='NO'
+   local MULLE_FLAG_LOG_MERGE='NO'
+   local MULLE_TRACE_POSTPONE='NO'
 
-   if [ "$1" = "-c" ]
-   then
-      cmd='cp -a'
+   #
+   # simple option handling
+   #
+   local argument
+   local cmd='mv'
+   local script
+
+   while [ "$#" -ne 0 ]
+   do
+      argument="$1"
+
+      if options_technical_flags "${argument}"
+      then
+         shift
+         continue
+      fi
+
+      case "${argument}" in
+         -h*|--help|help)
+            usage "${MULLE_TRACE}"
+         ;;
+
+         --version)
+            printf "%s\n" "${MULLE_EXECUTABLE_VERSION}"
+            exit 0
+         ;;
+
+         -c)
+            cmd='cp -a'
+         ;;
+
+         -f)
+            # actually sent
+         ;;
+
+
+         -m)
+            [ $# -eq 1 ] && fail "Missing argument to \"$1\""
+            shift
+
+            script="${1//&percnt;/%}"
+            script="${script//&amp;/&}"
+            eval "${script}" || exit 1
+         ;;
+
+         -n)
+            # actually sent
+         ;;
+
+         -*)
+            log_error "${MULLE_EXECUTABLE_FAIL_PREFIX}: Unknown option \"${argument}\""
+            usage "${MULLE_TRACE}"
+         ;;
+
+         *)
+            break
+         ;;
+      esac
+
       shift
-   fi
+   done
+
+   options_setup_trace "${MULLE_TRACE}" && set -x
+
 
    if [ $# -lt 2 ]
    then
-      fail "usage: mulle-dispense-mv-force [-c] <source> <destination>
-                   Removes destination directory if it exists
-                   Use -c to copy"
+      fail "usage: mulle-dispense-mv-force [-c] [-m mapper] <source> <destination-dir>
+                   Removes destination directory if it exists.
+                   Use -c to copy
+                   Use -m to define a filename mapping function"
    fi
+
+   log_debug "script: ${script}"
+
+   # additional options prepend
+   local arguments
 
    while [ $# -gt 2 ]
    do
@@ -110,33 +196,65 @@ main()
       shift
    done
 
-   local src
-   local dst
-
-   src="$1"
-   dst="$2"
+   local src="$1"
+   local dst="$2"
 
    [ -z "${src}" ] && fail "empty source is not allowed"
    [ -z "${dst}" ] && fail "empty destination is not allowed"
 
-   local name
-   local erase
+   # cases:  | source is      | destination is | action           |
+   #         |----------------|----------------|------------------|
+   #         | symlink        | directory      | rmdir ; ln -a    |
+   #         | symlink        | file           | rm ; ln -a       |
+   #         | symlink        | symlink        | rm ; ln -a       |
+   #         | symlink        | not present    | mkdir .. ; ln    |
+   #         | file           | directory      | rmdir ; cp -a    |
+   #         | file           | file           | rm ; cp -a       |
+   #         | file           | symlink        | rm ; cp -a       |
+   #         | file           | not present    | mkdir .. ; cp -A |
+   #         | directory      | directory      | rmdir ; cp -Ra   |
+   #         | directory      | file           | rm ; cp -Ra      |
+   #         | directory      | symlink        | rm ; cp -Ra      |
+   #         | directory      | not present    | cp -Ra           |
+   #
+   # We don't really mind if we use -R on a file so that sim.
+   # If we do things optimistically, we can postpone the mkdir in
+   # the failure case
 
-   case "${dst}" in
-      */)
-         r_basename "${src}"
-         name="${RVAL}"
-         erase="${dst}/${name}"
-      ;;
+   dst="${dst%/}/" # ensure it has a '/' trailing
 
-      *)
-         erase="${dst}"
-      ;;
-   esac
+  local name
 
-   rmdir_safer "${erase}" || exit 1
-   eval_exekutor "${cmd} -f ${arguments} '${src}' '${dst}'"
+   r_basename "${src}"
+   name="${RVAL}"
+
+   [ -z "${name}" ] && _internal_fail "empty filename for \"${src}\""
+
+   local mapped_name
+
+   r_map_filename "${name}" # defined by -m hopefully
+   mapped_name="${RVAL}"
+
+   [ -z "${mapped_name}" ] && _internal_fail "mapping function returned empty for \"${name}\""
+
+   local dstfile
+
+   r_filepath_concat "${dst}" "${mapped_name}"
+   dstfile="${RVAL}"
+
+   remove_file_if_present "${dstfile}"
+   mkdir_if_missing "${dst}"
+
+   # in case it's a directory
+   if [ -d "${dstfile}" ]
+   then
+      r_assert_sane_path "${dstfile}"
+      exekutor chmod -R ugo+wX "${dstfile}" >&2 || fail "Failed to make \"${dstfile}\" writable"
+      exekutor rm -rf "${dstfile}" >&2 || fail "failed to remove \"${dstfile}\""
+   fi
+
+   eval_exekutor "${cmd} -f ${arguments} '${src}' '${dstfile}'"
 }
 
 
-main "$@"
+call_with_flags "main" "${MULLE_DISPENSE_MV_FORCE_FLAGS}" "$@"

@@ -1,5 +1,10 @@
 #! /bin/sh
 #
+# shellcheck shell=bash
+# shellcheck disable=SC2236
+# shellcheck disable=SC2166
+# shellcheck disable=SC2006
+#
 #   Copyright (c) 2015-2017 Nat! - Mulle kybernetiK
 #   All rights reserved.
 #
@@ -31,6 +36,9 @@
 MULLE_DISPENSE_COPY_SH="included"
 
 
+#
+# TODO: Rewrite this completely
+#
 dispense::copy::usage()
 {
    cat <<EOF >&2
@@ -44,13 +52,20 @@ Usage:
          mulle-dispense dispense --header-dir include/swrast --copy main /tmp
 
 Options:
-   --header-dir <dir> : specify directory name to place include files
-   --lift-headers     : move header files up from subdirectories
-   --move             : move instead of copy
-   --name <name>      : project name for better logging output
+   --header-dir <dir>   : specify directory name to place include files
+   --lift-headers       : move header files up from subdirectories
+   --move               : move instead of copy
+   --name <name>        : project name for better logging output
+   --mapper-file <file> : a script containing a "r_map_filename" function
 
 EOF
    exit 1
+}
+
+
+r_map_filename()
+{
+   RVAL="$1"
 }
 
 
@@ -59,7 +74,7 @@ EOF
 #
 dispense::copy::rmdir_safer()
 {
-   [ -z "$1" ] && internal_fail "empty path"
+   [ -z "$1" ] && _internal_fail "empty path"
 
    if [ -d "$1" ]
    then
@@ -73,6 +88,24 @@ dispense::copy::rmdir_safer()
 # where we expect them. Expect  others to build to
 # <prefix>/include  and <prefix>/lib or <prefix>/Frameworks
 #
+dispense::copy::dispense_file()
+{
+   local src="$1"
+   local dst="$2"
+
+      # special case it's a file
+   log_fluff "Dispensing file from \"${src}\" to \"${dst}\""
+
+   # copy flag missing here ?
+   rexekutor "${MV_FORCE}" \
+               ${MULLE_TECHNICAL_FLAGS} \
+               ${MV_FORCE_FLAG} \
+               -m "${MV_MAPPER_FUNCTION}" \
+               "${src}" \
+               "${dst}"
+}
+
+
 dispense::copy::dispense_files()
 {
    log_entry "dispense::copy::dispense_files" "$@"
@@ -95,20 +128,11 @@ dispense::copy::dispense_files()
       return 1
    fi
 
+   # this can happen if it's a symlink or ?
    if [ ! -d "${src}" ]
    then
-      # special case it's a file
-      log_fluff "Dispensing file from \"${src}\" to \"${dst}\""
-      mkdir_if_missing "${dst}"
-
-      exekutor "${MV_FORCE}" \
-                  ${MV_FORCE_FLAG} \
-                  ${OPTION_COPYMOVEFLAGS} \
-                  "${copyflag}" \
-                  "${src}" \
-                  "${dst}/" || exit 1
+      dispense::copy::dispense_file "${src}" "${dst}"  || exit 1
       return
-
    fi
 
    if ! dir_has_files "${src}"
@@ -121,8 +145,21 @@ dispense::copy::dispense_files()
 
    # this fails with more nested header set ups, need to fix!
 
-   log_fluff "Dispensing ${ftype} from \"${src}\" to \"${dst}\""
-   exekutor cp -Ra ${OPTION_COPYMOVEFLAGS} "${src}"/* "${dst}" >&2 || exit 1
+   local subsrc
+
+   if [ -z "${dirpath}" ]
+   then
+      r_basename "${src}"
+      r_filepath_concat "${dst}" "${RVAL}"
+      dst="${RVAL}"
+
+      mkdir_if_missing "${dst}"
+   fi
+
+   .foreachfile subsrc in "${src}"/*
+   .do
+      dispense::copy::dispense_files "${subsrc}" "${ftype}" "${dst}" || exit 1
+   .done
 
    if [ "${OPTION_MOVE}" = 'YES' ]
    then
@@ -143,14 +180,11 @@ dispense::copy::dispense_headers()
    headerpath="${OPTION_HEADER_DIR:-/${HEADER_DIR_NAME}}"
 
    local src
-   IFS=':'
-   for src in $sources
-   do
-      IFS="${DEFAULT_IFS}"
 
+   .foreachpath src in ${sources}
+   .do
       dispense::copy::dispense_files "${src}" "headers" "${dstdir}" "${headerpath}"
-   done
-   IFS="${DEFAULT_IFS}"
+   .done
 }
 
 
@@ -167,14 +201,10 @@ dispense::copy::dispense_resources()
 
    local src
 
-   IFS=$':'
-   for src in $sources
-   do
-      IFS="${DEFAULT_IFS}"
-
+   .foreachpath src in ${sources}
+   .do
       dispense::copy::dispense_files "${src}" "resources" "${dstdir}" "${resourcepath}"
-   done
-   IFS="${DEFAULT_IFS}"
+   .done
 }
 
 
@@ -191,14 +221,10 @@ dispense::copy::dispense_libexec()
 
    local src
 
-   IFS=$':'
-   for src in $sources
-   do
-      IFS="${DEFAULT_IFS}"
-
+   .foreachpath src in ${sources}
+   .do
       dispense::copy::dispense_files "${src}" "libexec" "${dstdir}" "${libexecpath}"
-   done
-   IFS="${DEFAULT_IFS}"
+   .done
 }
 
 
@@ -221,7 +247,7 @@ dispense::copy::_dispense_binaries()
 
    findtype2="l"
    copyflag="-f"
-   if [ "${findtype}" = "-d"  ]
+   if [ "${findtype}" = "d"  ]
    then
       copyflag="-n"
    fi
@@ -240,9 +266,10 @@ dispense::copy::_dispense_binaries()
       log_fluff "Dispensing binary from \"${src}\" to \"${dst}\""
       mkdir_if_missing "${dst}"
 
-      exekutor "${MV_FORCE}" \
+      rexekutor "${MV_FORCE}" \
+                  ${MULLE_TECHNICAL_FLAGS} \
                   ${MV_FORCE_FLAG} \
-                  ${OPTION_COPYMOVEFLAGS} \
+                  -m "${MV_MAPPER_FUNCTION}" \
                   "${copyflag}" \
                   "${src}" \
                   "${dst}/" || exit 1
@@ -262,27 +289,29 @@ dispense::copy::_dispense_binaries()
    # provide an alternate implementation if xargs isnt there
    if [ ! -z "${XARGS}" ]
    then
-      exekutor find "${src}" -xdev \
+      rexekutor find "${src}" -xdev \
                              -mindepth 1 \
                              -maxdepth 1 \
                              \( -type "${findtype}" -o -type "${findtype2}" \) \
                              -print0 \
-      | exekutor "${XARGS}" -0 \
+      | rexekutor "${XARGS}" -0 \
                             -I % \
                             "${MV_FORCE}" \
+                               ${MULLE_TECHNICAL_FLAGS} \
                                ${MV_FORCE_FLAG} \
-                               ${OPTION_COPYMOVEFLAGS} \
+                              -m "${MV_MAPPER_FUNCTION}" \
                                "${copyflag}" \
                                % \
                                "${dst}/" >&2
    else
-      exekutor find "${src}" -xdev \
+      rexekutor find "${src}" -xdev \
                              -mindepth 1 \
                              -maxdepth 1 \
                              \( -type "${findtype}" -o -type "${findtype2}" \) \
-                             -exec "${MV_FORCE}"
+                             -exec "${MV_FORCE}" \
+                                       ${MULLE_TECHNICAL_FLAGS} \
                                        ${MV_FORCE_FLAG} \
-                                       ${OPTION_COPYMOVEFLAGS} \
+                                       -m "${MV_MAPPER_FUNCTION}" \
                                        "${copyflag}" \
                                        {} \
                                        "${dst}/" \
@@ -301,14 +330,10 @@ dispense::copy::dispense_binaries()
 
    local bin
 
-   IFS=$':'
-   for bin in ${binaries}
-   do
-      IFS="${DEFAULT_IFS}"
-
+   .foreachpath bin in ${binaries}
+   .do
       dispense::copy::_dispense_binaries "${bin}" "$@"
-   done
-   IFS="${DEFAULT_IFS}"
+   .done
 }
 
 
@@ -324,15 +349,12 @@ dispense::copy::dispense_libraries()
 
    local lib
 
-   IFS=$':'
-   for lib in $libraries
-   do
-      IFS="${DEFAULT_IFS}"
-
+   .foreachpath lib in $libraries
+   .do
       dispense::copy::_dispense_binaries "${lib}" "$@"  # sic!
-   done
-   IFS="${DEFAULT_IFS}"
+   .done
 }
+
 
 
 dispense::copy::collect_and_dispense_product()
@@ -344,6 +366,7 @@ dispense::copy::collect_and_dispense_product()
 
    local MV_FORCE
    local MV_FORCE_FLAG
+   local MV_MAPPER_FUNCTION
    local XARGS
 
    MV_FORCE="${MULLE_DISPENSE_LIBEXEC_DIR}/mulle-dispense-mv-force"
@@ -354,9 +377,18 @@ dispense::copy::collect_and_dispense_product()
       MV_FORCE_FLAG="-c"
    fi
 
+   MV_MAPPER_FUNCTION="`declare -f r_map_filename`" || exit 1
+
+   # to protect from Xargs escape all percent characters
+   # for oneryness escape all ampersands first
+   MV_MAPPER_FUNCTION="${MV_MAPPER_FUNCTION//&/&amp;}"
+   MV_MAPPER_FUNCTION="${MV_MAPPER_FUNCTION//%/&percnt;}"
+   # remove windows CRs as bonus
+   MV_MAPPER_FUNCTION="${MV_MAPPER_FUNCTION//$'\r'/}"
+
    if [ "${MULLE_FLAG_LOG_SETTINGS}" = 'YES'  ]
    then
-      log_trace2 "Contents of srcdir:"
+      log_setting "Contents of srcdir:"
 
       ls -lRa "${srcdir}" >&2
    fi
@@ -385,7 +417,7 @@ dispense::copy::collect_and_dispense_product()
    #
    # TODO: get search paths from mulle_platform ?
    #
-   if true
+   if :
    then
       local sources
 
@@ -515,18 +547,19 @@ dispense::copy::collect_and_dispense_product()
          dst="${dstdir}${usrlocal}"
 
          log_fluff "Dispensing everything from \"${srcdir}\" to \"${dst}\""
+
          if [ ! -z "${XARGS}" ]
          then
             exekutor find "${srcdir}" -xdev \
                                       -mindepth 1 \
                                       -maxdepth 1 \
                                       -print0 | \
-               exekutor "${XARGS}" -0 -I % mv ${OPTION_COPYMOVEFLAGS} -f % "${dst}/" >&2
+               exekutor "${XARGS}" -0 -I % mv -f % "${dst}/" >&2
          else
             exekutor find "${srcdir}" -xdev \
                                       -mindepth 1 \
                                       -maxdepth 1 \
-                                      -exec mv ${OPTION_COPYMOVEFLAGS} {} "${dst}/" \;
+                                      -exec mv {} "${dst}/" \;
          fi
          [ $? -eq 0 ]  || fail "moving files from ${srcdir} to ${dst} failed"
       fi
@@ -594,11 +627,8 @@ dispense::copy::main()
 {
    log_entry "dispense::copy::main" "$@"
 
-   local ROOT_DIR
-
-   ROOT_DIR="`pwd -P`"
-
    local OPTION_NAME
+   local OPTION_MAPPER_FILE
    local OPTION_FRAMEWORKS='DEFAULT'
    local OPTION_LIBRARIES='DEFAULT'
    local OPTION_EXECUTABLES='DEFAULT'
@@ -678,16 +708,19 @@ dispense::copy::main()
             OPTION_RESOURCES='NO'  # could be generated
          ;;
 
-         --frameworks)
-            OPTION_FRAMEWORKS='YES'
-         ;;
-
 
          --header-dir)
             [ $# -eq 1 ] && fail "Missing argument to \"$1\""
             shift
 
             OPTION_HEADER_DIR="$1"
+         ;;
+
+         --mapper-file)
+            [ $# -eq 1 ] && fail "Missing argument to \"$1\""
+            shift
+
+            OPTION_MAPPER_FILE="$1"
          ;;
 
          -*)
@@ -722,22 +755,7 @@ dispense::copy::main()
       echo >&2
    fi
 
-   if [ -z "${MULLE_DISPENSE_OSSPECIFIC_SH}" ]
-   then
-      . "${MULLE_DISPENSE_LIBEXEC_DIR}/mulle-dispense-osspecific.sh" || return 1
-   fi
-   if [ -z "${MULLE_STRING_SH}" ]
-   then
-      . "${MULLE_BASHFUNCTIONS_LIBEXEC_DIR}/mulle-string.sh" || return 1
-   fi
-   if [ -z "${MULLE_PATH_SH}" ]
-   then
-      . "${MULLE_BASHFUNCTIONS_LIBEXEC_DIR}/mulle-path.sh" || return 1
-   fi
-   if [ -z "${MULLE_FILE_SH}" ]
-   then
-      . "${MULLE_BASHFUNCTIONS_LIBEXEC_DIR}/mulle-file.sh" || return 1
-   fi
+   include "dispense::osspecific"
 
    local name
 
@@ -758,6 +776,11 @@ dispense::copy::main()
       OPTION_FRAMEWORKS='YES'
    else
       OPTION_FRAMEWORKS='NO'
+   fi
+
+   if [ "${OPTION_MAPPER_FILE}" ]
+   then
+      . "${OPTION_MAPPER_FILE}" || fail "Load of ${OPTION_MAPPER_FILE} failed ($?)"
    fi
 
    log_fluff "Collecting and dispensing \"${name}\" products"

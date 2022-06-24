@@ -245,10 +245,10 @@ init()
 
    # defined in mulle-dispense-osspecific.sh
 
-   [ -z "${HEADER_DIR_NAME}" ]  && internal_fail "HEADER_DIR_NAME" is empty
-   [ -z "${LIBRARY_DIR_NAME}" ] && internal_fail "LIBRARY_DIR_NAME" is empty
-   [ -z "${LIBRARY_SUFFIXES}" ] && internal_fail "LIBRARY_SUFFIXES" is empty
-   [ -z "${HEADER_SUFFIXES}" ]  && internal_fail "HEADER_SUFFIXES" is empty
+   [ -z "${HEADER_DIR_NAME}" ]  && _internal_fail "HEADER_DIR_NAME" is empty
+   [ -z "${LIBRARY_DIR_NAME}" ] && _internal_fail "LIBRARY_DIR_NAME" is empty
+   [ -z "${LIBRARY_SUFFIXES}" ] && _internal_fail "LIBRARY_SUFFIXES" is empty
+   [ -z "${HEADER_SUFFIXES}" ]  && _internal_fail "HEADER_SUFFIXES" is empty
 }
 
 

@@ -14,3 +14,5 @@ dependency/
 addiction/
 mulle-dispense.sublime-workspace
 mulle-project/publisher-info.sh
+.gitignore
+.mulle-make-build-dir
