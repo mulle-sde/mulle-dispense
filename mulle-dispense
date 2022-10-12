@@ -145,7 +145,14 @@ dispense::usage()
 Usage:
    ${MULLE_USAGE_NAME} [flags] [command] [options] <srcdir> <dstdir>
 
-   Distribute build product files in a uniform fashion.
+   Distribute build product files in a uniform fashion. See the "copy" help
+   for more information.
+
+Hint:
+   Use \`mulle-sde dependency <name> mark no-inplace\` to activate the dispense
+   step of mulle-sde. Use the mark "no-rootheader" to lower header files into
+   a subdirectory. Use the mark "only-liftheaders" to lift headers up to root
+   level of the include.
 
 Flags:
 EOF

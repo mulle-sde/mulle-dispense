@@ -43,7 +43,7 @@ dispense::copy::usage()
 {
    cat <<EOF >&2
 Usage:
-   ${MULLE_USAGE_NAME} dispense [options] <srcdir> <dstdir>
+   ${MULLE_USAGE_NAME} copy [options] <srcdir> <dstdir>
 
    Copy stuff from srcdir to dstdir, possibly reorganizing it on the fly.
 
@@ -208,26 +208,6 @@ dispense::copy::dispense_resources()
 }
 
 
-dispense::copy::dispense_libexec()
-{
-   log_entry "dispense::copy::dispense_libexec" "$@"
-
-   local sources="$1"
-   local dstdir="$2"
-
-   local libexecpath
-
-   libexecpath="${OPTION_DISPENSE_LIBEXEC_DIR:-/${LIBEXEC_DIR_NAME}}"
-
-   local src
-
-   .foreachpath src in ${sources}
-   .do
-      dispense::copy::dispense_files "${src}" "libexec" "${dstdir}" "${libexecpath}"
-   .done
-}
-
-
 dispense::copy::_dispense_binaries()
 {
    log_entry "dispense::copy::_dispense_binaries" "$@"
@@ -337,24 +317,65 @@ dispense::copy::dispense_binaries()
 }
 
 
-#
-# ideally we would have something lile mulle-dispense-library-force.darwin
-# which would rewrite the hardcoded paths to @rpath something
-#
-dispense::copy::dispense_libraries()
-{
-   log_entry "dispense::copy::dispense_libraries" "$@"
 
-   local libraries="$1" ; shift
+dispense::copy::dispense_libexec()
+{
+   log_entry "dispense::copy::dispense_libexec" "$@"
+
+   local sources="$1"
+   local dstdir="$2"
+
+   local libexecpath
+
+   libexecpath="${OPTION_DISPENSE_LIBEXEC_DIR:-/${LIBEXEC_DIR_NAME}}"
+
+   local src
+
+   .foreachpath src in ${sources}
+   .do
+      dispense::copy::dispense_files "${src}" "libexec" "${dstdir}" "${libexecpath}"
+   .done
+}
+
+
+dispense::copy::dispense_libexecs()
+{
+   log_entry "dispense::copy::dispense_libexecs" "$@"
+
+   local libraries="$1"
+   local dstdir="$2"
+   local dstpath="$3"
 
    local lib
 
    .foreachpath lib in $libraries
    .do
-      dispense::copy::_dispense_binaries "${lib}" "$@"  # sic!
+      dispense::copy::dispense_files "${lib}" "f" "${dstdir}" "${dstpath}"
    .done
 }
 
+
+#
+# ideally we would have something lile mulle-dispense-library-force.darwin
+# which would rewrite the hardcoded paths to @rpath something
+#
+
+dispense::copy::dispense_libraries()
+{
+   log_entry "dispense::copy::dispense_libraries" "$@"
+
+   local libraries="$1"
+   local dstdir="$2"
+   local dstpath="$3"
+
+   local lib
+
+   .foreachpath lib in $libraries
+   .do
+      dispense::copy::_dispense_binaries "${lib}" "f" "${dstdir}" "${dstpath}"
+      dispense::copy::_dispense_binaries "${lib}/pkgconfig" "f" "${dstdir}" "${dstpath}/pkgconfig"
+   .done
+}
 
 
 dispense::copy::collect_and_dispense_product()
@@ -428,16 +449,45 @@ dispense::copy::collect_and_dispense_product()
          ## TODO: isn't cmake's output directory also platform specific ?
          ##
          # order is important, last one wins!
-         r_colon_concat "${srcdir}/lib:${srcdir}/usr/lib:${srcdir}/usr/local/lib" \
-                        "${MULLE_DISPENSE_SEARCH_LIB_PATH}"
-         dispense::copy::dispense_libraries "${RVAL}" "f" "${dstdir}" "/${LIBRARY_DIR_NAME}"
+         local searchpath
+
+         RVAL=""
+         r_colon_concat "${RVAL}" "${srcdir}/lib"
+         r_colon_concat "${RVAL}" "${srcdir}/usr/lib"
+         r_colon_concat "${RVAL}" "${srcdir}/usr/local/lib"
+
+         case "${MULLE_UNAME}" in
+            linux)
+               r_colon_concat "${RVAL}" "${srcdir}/lib/`uname -i`-linux-gnu"
+            ;;
+         esac
+         r_colon_concat "${RVAL}" "${MULLE_DISPENSE_SEARCH_LIB_PATH}"
+         searchpath="${RVAL}"
+
+         dispense::copy::dispense_libraries "${searchpath}" "${dstdir}" "/${LIBRARY_DIR_NAME}"
 
          ##
          ## copy libexec
          ##
+         RVAL=""
+         r_colon_concat "${RVAL}" "${srcdir}/libexec"
+         r_colon_concat "${RVAL}" "${srcdir}/usr/libexec"
+         r_colon_concat "${RVAL}" "${srcdir}/usr/local/libexec"
+
+         case "${MULLE_UNAME}" in
+            linux)
+               r_colon_concat "${RVAL}" "${srcdir}/libexec/`uname -i`-linux-gnu"
+            ;;
+         esac
+         r_colon_concat "${RVAL}" "${MULLE_DISPENSE_SEARCH_LIBEXEC_PATH}"
+         searchpath="${RVAL}"
+
          r_colon_concat "${srcdir}/libexec:${srcdir}/usr/libexec:${srcdir}/usr/local/libexec" \
                         "${MULLE_DISPENSE_SEARCH_LIBEXEC_PATH}"
-         dispense::copy::dispense_libexec "${RVAL}" "${dstdir}"
+
+         dispense::copy::dispense_libexecs "${searchpath}" \
+                                           "${dstdir}" \
+                                           "${OPTION_DISPENSE_LIBEXEC_DIR:-/${LIBEXEC_DIR_NAME}}"
       fi
 
       if [ "${OPTION_HEADERS}" = 'YES' ]
