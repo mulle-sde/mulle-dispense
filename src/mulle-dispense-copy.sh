@@ -208,9 +208,9 @@ dispense::copy::dispense_resources()
 }
 
 
-dispense::copy::_dispense_binaries()
+dispense::copy::do_dispense_binaries()
 {
-   log_entry "dispense::copy::_dispense_binaries" "$@"
+   log_entry "dispense::copy::do_dispense_binaries" "$@"
 
    local src="$1"
    local findtype="$2"
@@ -267,7 +267,7 @@ dispense::copy::_dispense_binaries()
 
    # Use XARGS here if available for a bit more parallelism
    # provide an alternate implementation if xargs isnt there
-   if [ ! -z "${XARGS}" ]
+   if false && [ ! -z "${XARGS}" ]
    then
       rexekutor find "${src}" -xdev \
                              -mindepth 1 \
@@ -312,7 +312,7 @@ dispense::copy::dispense_binaries()
 
    .foreachpath bin in ${binaries}
    .do
-      dispense::copy::_dispense_binaries "${bin}" "$@"
+      dispense::copy::do_dispense_binaries "${bin}" "$@"
    .done
 }
 
@@ -372,8 +372,8 @@ dispense::copy::dispense_libraries()
 
    .foreachpath lib in $libraries
    .do
-      dispense::copy::_dispense_binaries "${lib}" "f" "${dstdir}" "${dstpath}"
-      dispense::copy::_dispense_binaries "${lib}/pkgconfig" "f" "${dstdir}" "${dstpath}/pkgconfig"
+      dispense::copy::do_dispense_binaries "${lib}" "f" "${dstdir}" "${dstpath}"
+      dispense::copy::do_dispense_binaries "${lib}/pkgconfig" "f" "${dstdir}" "${dstpath}/pkgconfig"
    .done
 }
 
@@ -401,9 +401,9 @@ dispense::copy::collect_and_dispense_product()
    MV_MAPPER_FUNCTION="`declare -f r_map_filename`" || exit 1
 
    # to protect from Xargs escape all percent characters
-   # for oneryness escape all ampersands first
-   MV_MAPPER_FUNCTION="${MV_MAPPER_FUNCTION//&/&amp;}"
-   MV_MAPPER_FUNCTION="${MV_MAPPER_FUNCTION//%/&percnt;}"
+   # for orneryness escape all ampersands first
+   MV_MAPPER_FUNCTION="${MV_MAPPER_FUNCTION//\&/&amp;}"
+   MV_MAPPER_FUNCTION="${MV_MAPPER_FUNCTION//\%/&percnt;}"
    # remove windows CRs as bonus
    MV_MAPPER_FUNCTION="${MV_MAPPER_FUNCTION//$'\r'/}"
 
