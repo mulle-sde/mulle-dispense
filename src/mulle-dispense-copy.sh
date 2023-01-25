@@ -78,7 +78,14 @@ dispense::copy::rmdir_safer()
 
    if [ -d "$1" ]
    then
-      exekutor chmod -R ugo+wX "$1" >&2 || fail "Failed to make $1 writable"
+      case "${MULLE_UNAME}" in
+         'sunos')
+            exekutor chmod -R ugo+wX "$1" 2> /dev/null
+         ;;
+         *)
+            exekutor chmod -R ugo+wX "$1" >&2 || fail "Failed to make $1 writable"
+         ;;
+      esac
       exekutor rm -rf "$1"  >&2 || fail "failed to remove $1"
    fi
 }
@@ -265,40 +272,66 @@ dispense::copy::do_dispense_binaries()
    log_fluff "Dispensing binaries from \"${src}\" to \"${dst}\""
    mkdir_if_missing "${dst}"
 
-   # Use XARGS here if available for a bit more parallelism
-   # provide an alternate implementation if xargs isnt there
-   if false && [ ! -z "${XARGS}" ]
-   then
-      rexekutor find "${src}" -xdev \
-                             -mindepth 1 \
-                             -maxdepth 1 \
-                             \( -type "${findtype}" -o -type "${findtype2}" \) \
-                             -print0 \
-      | rexekutor "${XARGS}" -0 \
-                            -I % \
-                            "${MV_FORCE}" \
-                               ${MULLE_TECHNICAL_FLAGS} \
-                               ${MV_FORCE_FLAG} \
-                              -m "${MV_MAPPER_FUNCTION}" \
-                               "${copyflag}" \
-                               % \
-                               "${dst}/" >&2
-   else
-      rexekutor find "${src}" -xdev \
-                             -mindepth 1 \
-                             -maxdepth 1 \
-                             \( -type "${findtype}" -o -type "${findtype2}" \) \
-                             -exec "${MV_FORCE}" \
-                                       ${MULLE_TECHNICAL_FLAGS} \
-                                       ${MV_FORCE_FLAG} \
-                                       -m "${MV_MAPPER_FUNCTION}" \
-                                       "${copyflag}" \
-                                       {} \
-                                       "${dst}/" \
-                                       \;
-   fi
+# XARGS wasn't used for unknown reasons, and mingw can't do the find so
+# just use `dir_list_files` for now
+#
+#   # Use XARGS here if available for a bit more parallelism
+#   # provide an alternate implementation if xargs isnt there
+#   if false && [ ! -z "${XARGS}" ]
+#   then
+#      rexekutor find "${src}" -xdev \
+#                              -mindepth 1 \
+#                              -maxdepth 1 \
+#                              \( -type "${findtype}" -o -type "${findtype2}" \) \
+#                              -print0 \
+#      | rexekutor "${XARGS}" -0 \
+#                            -I % \
+#                            "${MV_FORCE}" \
+#                               ${MULLE_TECHNICAL_FLAGS} \
+#                               ${MV_FORCE_FLAG} \
+#                              -m "${MV_MAPPER_FUNCTION}" \
+#                               "${copyflag}" \
+#                               % \
+#                               "${dst}/" >&2
+#   else
 
-   [ $? -eq 0 ]  || exit 1
+   case "${MULLE_UNAME}" in 
+      sunos)
+         local filenames 
+         local filename
+
+         filenames="`dir_list_files "${src}" "" "${findtype}${findtype2}" `"
+         .foreachline filename in ${filenames}
+         .do 
+            if ! "${MV_FORCE}" \
+                   ${MULLE_TECHNICAL_FLAGS} \
+                   ${MV_FORCE_FLAG} \
+                   -m "${MV_MAPPER_FUNCTION}" \
+                   "${copyflag}" \
+                   "${filename}" \
+                   "${dst}/" 
+            then
+               exit 1
+            fi
+         .done 
+      ;;
+
+      *)
+         rexekutor find "${src}" -xdev \
+                                 -mindepth 1 \
+                                 -maxdepth 1 \
+                                 \( -type "${findtype}" -o -type "${findtype2}" \) \
+                                 -exec "${MV_FORCE}" \
+                                          ${MULLE_TECHNICAL_FLAGS} \
+                                          ${MV_FORCE_FLAG} \
+                                          -m "${MV_MAPPER_FUNCTION}" \
+                                          "${copyflag}" \
+                                          {} \
+                                          "${dst}/" \
+                                          \;
+         [ $? -eq 0 ]  || exit 1
+      ;;
+   esac
 }
 
 
@@ -502,19 +535,17 @@ dispense::copy::collect_and_dispense_product()
          if [ "${OPTION_LIFT_HEADERS}" = 'YES' ]
          then
             local expanded
+            local files 
 
-            IFS=$':'; shell_disable_glob
-            for i in ${sources}
-            do
-               shell_enable_glob; IFS="${DEFAULT_IFS}"
-
+            .foreachpath i in ${sources}
+            .do
                if [ -d "${i}" ]
                then
-                  r_add_line "${expanded}" "`find "$i" -mindepth 1 -maxdepth 1 -type d  -print`"
+                  files="`dir_list_files "$i" "" 'd'`"
+                  r_add_line "${expanded}" "${files}"
                   expanded="${RVAL}"
                fi
-            done
-            shell_enable_glob; IFS="${DEFAULT_IFS}"
+            .done
 
             sources="${expanded}"
          fi

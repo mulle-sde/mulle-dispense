@@ -14,7 +14,7 @@ Essentially, `mulle-dispense` is a shortcut for:
 
 ```
 cd build
-cp -Ra include share lib bin "${DEPENDENCY_DIR}"
+cp -Rp include share lib bin "${DEPENDENCY_DIR}"
 ```
 
 But it is a bit more clever than that...

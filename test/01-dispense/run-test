@@ -25,10 +25,12 @@ _setup_demo_build_dir()
    local directory="$1"
 
    local PREFIX_PATH
+
    case "${MULLE_UNAME}" in
-      mingw*)
+      'mingw'|'msys')
          PREFIX_PATH="/usr:/usr/local"
       ;;
+
       *)
          PREFIX_PATH="/usr:/usr/local"
       ;;
@@ -146,7 +148,7 @@ expect_content()
 
    local diffs
 
-   diffs="`diff -b -B "${output}" - <<< "${expect}"`"
+   diffs="`diff -b "${output}" - <<< "${expect}"`"
    if [ $? -ne 0 ]
    then
       log_error "Unexpected output generated"
@@ -228,7 +230,7 @@ main()
    esac
 
    log_info "----- ALL PASSED -----"
-
+   cd ..
    rmdir_safer "${directory}"
 }
 

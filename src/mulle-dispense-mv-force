@@ -93,7 +93,7 @@ main()
          ;;
 
          -c)
-            cmd='cp -a'
+            cmd='cp -p'
          ;;
 
          -f)
@@ -203,7 +203,14 @@ main()
    if [ -d "${dstfile}" ]
    then
       r_assert_sane_path "${dstfile}"
-      exekutor chmod -R ugo+wX "${dstfile}" >&2 || fail "Failed to make \"${dstfile}\" writable"
+      case "${MULLE_UNAME}" in
+         'sunos')
+            exekutor chmod -R ugo+wX "${dstfile}" 2> /dev/null
+         ;;
+         *)
+            exekutor chmod -R ugo+wX "${dstfile}" >&2 || fail "Failed to make ${dstfile} writable"
+         ;;
+      esac
       exekutor rm -rf "${dstfile}" >&2 || fail "failed to remove \"${dstfile}\""
    fi
 

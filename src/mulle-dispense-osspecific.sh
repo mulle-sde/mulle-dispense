@@ -53,11 +53,11 @@ LIBRARY_SUFFIXES=".a .so"
 LIBRARY_PREFIX="lib"
 
 case "${MULLE_UNAME}" in
-   darwin)
+   'darwin')
       LIBRARY_SUFFIXES=".a .dylib"
    ;;
 
-   mingw)
+   'mingw'|'msys')
       LIBRARY_SUFFIXES=".lib .dll"
       LIBRARY_PREFIX=""
       SBIN_DIR_NAME=""
