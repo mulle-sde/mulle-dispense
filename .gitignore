@@ -17,3 +17,6 @@ mulle-project/publisher-info.sh
 .gitignore
 .mulle-make-build-dir
 var/
+cola/wilted/
+mulle-markdown-preview-*.html
+build-*/

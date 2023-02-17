@@ -1,0 +1,11 @@
+After having build something with your favorite build tool like `make`, this
+tool will copy the build results to a destination folder. Essentially,
+`mulle-dispense` is a shortcut for:
+
+``` sh
+cd build
+cp -Rp include share lib bin "${DEPENDENCY_DIR}"
+```
+
+But headers can be reorganized to fit a canonical "subfolder for every library"
+scheme. So `#include <zlib.h>` may become `#include <zlib/zlib.h>`.

@@ -1,0 +1,12 @@
+{
+   project =
+   {
+      description=" 🚰 Copy build products and reorganize them ";
+      domain="github";
+      name="mulle-dispense";
+      username="mulle-sde";
+      reponame="mulle-dispense";
+      homepage="https://github.com/mulle-sde/mulle-dispense";
+      license="BSD-3-Clause"
+   };
+}
