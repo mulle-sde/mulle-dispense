@@ -1,3 +1,7 @@
+### 3.2.1
+
+* fix some cross-platform bugs
+
 ## 3.2.0
 
 * improved dispensal of libexec products
