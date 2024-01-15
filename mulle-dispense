@@ -65,7 +65,7 @@ dispense::print_commands()
    local  show_all="${1:-NO}"
 
    SHOWN_COMMANDS="\
-   dispense      : copy files [default]
+   copy          : copy files [default]
    version       : print ${MULLE_USAGE_NAME} version"
 
    HIDDEN_COMMANDS="\

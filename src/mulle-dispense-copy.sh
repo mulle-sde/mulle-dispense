@@ -48,8 +48,8 @@ Usage:
    Copy stuff from srcdir to dstdir, possibly reorganizing it on the fly.
 
    Example:
-      MULLE_DISPENSE_SEARCH_LIB_PATH=main/libraster.a \
-         mulle-dispense dispense --header-dir include/swrast --copy main /tmp
+      MULLE_DISPENSE_SEARCH_LIB_PATH=main/libraster.a \\
+         mulle-dispense copy --header-dir include/swrast --copy main /tmp
 
 Options:
    --header-dir <dir>   : specify directory name to place include files
@@ -723,7 +723,7 @@ dispense::copy::main()
    do
       case "$1" in
          -h*|--help|help)
-            ${USAGE}
+            dispense::copy::usage
          ;;
 
          -c|--copy)
