@@ -1,3 +1,7 @@
+### 3.2.3
+
+Various small improvements
+
 ### 3.2.2
 
 Various small improvements
