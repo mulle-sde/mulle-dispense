@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.0)
+cmake_minimum_required( VERSION 3.15)
 
 project( mulle-dispense VERSION 3.2.3 LANGUAGES NONE)
 
