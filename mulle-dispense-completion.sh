@@ -6,8 +6,8 @@ _mulle_dispense_complete()
     # Global options
     local global_options="-f --force -h --help --version -ls"
 
-    # Top-level commands
-    local commands="copy version libexec-dir library-path uname"
+    # Top-level commands (copy and dispense are aliases)
+    local commands="copy dispense version libexec-dir library-path uname"
 
     local i cmd
 
@@ -55,15 +55,15 @@ _mulle_dispense_complete()
         if [[ "$cur" == -* ]]; then
             COMPREPLY=($(compgen -W "$global_options" -- "$cur"))
         else
-            COMPREPLY=($(compgen -W "$commands copy" -- "$cur"))
+            COMPREPLY=($(compgen -W "$commands" -- "$cur"))
         fi
         return
     fi
 
     # Handle specific commands
     case "$cmd" in
-        copy)
-            local copy_options="-c --copy -m --move -n --name --project-name --no-executables --executables --no-share --share --no-resources --resources --no-frameworks --frameworks --headers --no-headers --lift-headers --no-lift-headers --only-headers --header-dir --mapper-file"
+        copy|dispense)
+            local copy_options="-h --help -c --copy -m --move -n --name --project-name --no-executables --executables --no-share --share --no-resources --resources --no-frameworks --frameworks --headers --no-headers --lift-headers --no-lift-headers --only-headers --header-dir --mapper-file"
             local copy_option_with_arg="--name --project-name --header-dir --mapper-file"
             local cmd_index=$i
 
