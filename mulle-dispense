@@ -40,7 +40,7 @@
 [ "${TRACE:-}" = 'YES' -o "${MULLE_DISPENSE_TRACE:-}" = 'YES' ] && set -x && : "$0" "$@"
 
 
-MULLE_EXECUTABLE_VERSION=3.2.3
+MULLE_EXECUTABLE_VERSION=3.2.4
 
 #
 # Determine location of own libexec directory. Which is `src` in development
