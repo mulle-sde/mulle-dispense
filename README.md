@@ -16,7 +16,7 @@ scheme. So `#include <zlib.h>` may become `#include <zlib/zlib.h>`.
 
 | Release Version                                       | Release Notes
 |-------------------------------------------------------|--------------
-| ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-sde/mulle-dispense.svg?branch=release)  | [RELEASENOTES](RELEASENOTES.md) |
+| ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-sde/mulle-dispense.svg)  | [RELEASENOTES](RELEASENOTES.md) |
 
 
 

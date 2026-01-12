@@ -1,3 +1,15 @@
+### 3.2.4
+
+
+* corrected GitHub tag badge URL parameter
+
+
+
+
+* added completion file
+
+* need to update `cmake_minimum_required` because cmake has a weird concept of min required
+
 ### 3.2.3
 
 Various small improvements
