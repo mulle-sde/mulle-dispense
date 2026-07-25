@@ -24,3 +24,4 @@ expat-windows-library-map.sh
 .mulle/etc/project/publisher-info.sh
 .mulle/etc/make
 dox.unreleased
+.roam/
