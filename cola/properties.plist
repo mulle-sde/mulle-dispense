@@ -7,6 +7,7 @@
       username="mulle-sde";
       reponame="mulle-dispense";
       homepage="https://github.com/mulle-sde/mulle-dispense";
-      license="BSD-3-Clause"
+      license="BSD-3-Clause";
+      version="3.2.5"
    };
 }
